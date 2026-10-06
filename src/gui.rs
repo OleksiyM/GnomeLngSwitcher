@@ -152,7 +152,6 @@ pub fn show_about_window(app: Option<&adw::Application>, parent: Option<&Applica
     let window = AdwWindow::builder()
         .title("About")
         .default_width(380)
-        .default_height(400)
         .resizable(false)
         .modal(true)
         .build();

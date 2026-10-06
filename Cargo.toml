@@ -1,6 +1,6 @@
 [package]
 name = "gnome-lng-switcher"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
 description = "Control-key keyboard layout switcher for GNOME (Wayland and X11)"
 license = "MIT"

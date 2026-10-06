@@ -4,5 +4,5 @@
   "description": "Companion extension for the GnomeLngSwitcher app: switches keyboard layouts on demand over D-Bus. Use the Settings button to open the app.",
   "shell-version": ["45", "46", "47", "48", "49", "50"],
   "url": "https://github.com/OleksiyM/GnomeLngSwitcher",
-  "version-name": "1.0.0"
+  "version-name": "1.0.1"
 }

@@ -1,0 +1,237 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    name: Validate release tag
+    if: github.repository == 'OleksiyM/GnomeLngSwitcher'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Check out the tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate tag, version sources and branch
+        id: version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          version=$(./scripts/check-version.sh "$RELEASE_TAG")
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main || {
+            printf 'Tag %s is not reachable from main.\n' "$RELEASE_TAG" >&2
+            exit 1
+          }
+          printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build ${{ matrix.arch }} on Fedora 44
+    needs: guard
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    env:
+      GLS_PACKAGE_ARCH: ${{ matrix.arch }}
+      VERSION: ${{ needs.guard.outputs.version }}
+    steps:
+      - name: Check out the tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check and package in Fedora 44
+        run: |
+          set -euo pipefail
+          workspace_uid=$(stat -c %u "$GITHUB_WORKSPACE")
+          workspace_gid=$(stat -c %g "$GITHUB_WORKSPACE")
+          docker run --rm \
+            -e GLS_PACKAGE_ARCH \
+            -e WORKSPACE_UID="$workspace_uid" \
+            -e WORKSPACE_GID="$workspace_gid" \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace \
+            fedora:44 \
+            bash -euxo pipefail -c '
+              dnf install -y git cargo rust gtk4-devel libadwaita-devel openssl-devel pkgconf gcc findutils tar gzip python3
+              git config --global --add safe.directory /workspace
+              cargo test --locked
+              SOURCE_DATE_EPOCH=$(git log -1 --format=%ct) ./scripts/build-package.sh
+              chown -R "$WORKSPACE_UID:$WORKSPACE_GID" target dist
+            '
+
+      - name: Validate archive contract
+        id: archive
+        run: |
+          set -euo pipefail
+          archive="gnome-lng-switcher-${VERSION}-${GLS_PACKAGE_ARCH}.tar.gz"
+          [[ -f "dist/$archive" ]] || {
+            printf 'Packager did not produce required archive: dist/%s\n' "$archive" >&2
+            exit 1
+          }
+          printf 'name=%s\n' "$archive" >> "$GITHUB_OUTPUT"
+
+      - name: Attest archive provenance
+        id: attest
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: dist/${{ steps.archive.outputs.name }}
+
+      - name: Preserve local attestation bundle
+        env:
+          ARCHIVE: ${{ steps.archive.outputs.name }}
+          BUNDLE_PATH: ${{ steps.attest.outputs.bundle-path }}
+        run: |
+          set -euo pipefail
+          install -m 0644 "$BUNDLE_PATH" "dist/${ARCHIVE}.sigstore.json"
+
+      - name: Stage release assets
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-${{ env.GLS_PACKAGE_ARCH }}
+          path: |
+            dist/${{ steps.archive.outputs.name }}
+            dist/${{ steps.archive.outputs.name }}.sigstore.json
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish release
+    needs: [guard, build]
+    runs-on: ubuntu-24.04
+    env:
+      VERSION: ${{ needs.guard.outputs.version }}
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    steps:
+      - name: Check out full history at the release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Download staged release assets
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: release-*
+          path: dist
+          merge-multiple: true
+
+      - name: Create and verify checksums
+        working-directory: dist
+        run: |
+          set -euo pipefail
+          archives=(
+            "gnome-lng-switcher-${VERSION}-aarch64.tar.gz"
+            "gnome-lng-switcher-${VERSION}-x86_64.tar.gz"
+          )
+          for archive in "${archives[@]}"; do
+            [[ -f "$archive" && -f "${archive}.sigstore.json" ]] || {
+              printf 'Missing archive or attestation bundle: %s\n' "$archive" >&2
+              exit 1
+            }
+          done
+          mapfile -t staged < <(find . -maxdepth 1 -type f -printf '%f\n' | LC_ALL=C sort)
+          [[ ${#staged[@]} -eq 4 ]] || {
+            printf 'Expected exactly two archives and two attestation bundles, found %s files\n' "${#staged[@]}" >&2
+            exit 1
+          }
+          sha256sum -- "${archives[@]}" > SHA256SUMS
+          sha256sum --check SHA256SUMS
+
+      - name: Attest checksum manifest
+        id: attest_checksums
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: dist/SHA256SUMS
+
+      - name: Preserve checksum attestation bundle
+        env:
+          BUNDLE_PATH: ${{ steps.attest_checksums.outputs.bundle-path }}
+        run: install -m 0644 "$BUNDLE_PATH" dist/SHA256SUMS.sigstore.json
+
+      - name: Refuse to overwrite an existing release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            printf 'Release %s already exists; refusing to overwrite its assets.\n' "$RELEASE_TAG" >&2
+            exit 1
+          fi
+
+      - name: Write commit-based release notes
+        env:
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          previous_tag=''
+          while IFS= read -r candidate; do
+            [[ "$candidate" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || continue
+            [[ "$candidate" != "$RELEASE_TAG" ]] || continue
+            if [[ $(printf '%s\n' "$candidate" "$RELEASE_TAG" | sort -V | head -n 1) == "$candidate" ]]; then
+              previous_tag=$candidate
+              break
+            fi
+          done < <(git for-each-ref --merged "$RELEASE_TAG" --sort=-version:refname --format='%(refname:short)' refs/tags)
+
+          printf '## What’s New\n\n' > release-notes.md
+          if [[ -n "$previous_tag" ]]; then
+            printf '[Compare changes](https://github.com/%s/compare/%s...%s)\n\n' "$GH_REPO" "$previous_tag" "$RELEASE_TAG" >> release-notes.md
+            range="${previous_tag}..${RELEASE_TAG}"
+          else
+            range=$RELEASE_TAG
+          fi
+          git log --no-merges --format='- %s (`%h`)' "$range" >> release-notes.md
+          {
+            printf '\n## Install\n\n```bash\n'
+            printf 'curl -fsSL https://raw.githubusercontent.com/%s/%s/install.sh | bash\n' "$GH_REPO" "$RELEASE_TAG"
+            printf '```\n'
+          } >> release-notes.md
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          mapfile -t assets < <(find dist -maxdepth 1 -type f -printf '%p\n' | LC_ALL=C sort)
+          gh release create "$RELEASE_TAG" "${assets[@]}" \
+            --verify-tag \
+            --notes-file release-notes.md \
+            --title "GnomeLngSwitcher ${RELEASE_TAG#v}"

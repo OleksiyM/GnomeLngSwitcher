@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=GnomeLngSwitcher
+GenericName=Keyboard Layout Switcher
+Comment=Switch keyboard layouts with the Control keys
+Exec=@BINARY@
+Icon=input-keyboard
+Terminal=false
+Categories=GNOME;GTK;Settings;
+Keywords=keyboard;layout;language;switch;
+StartupWMClass=io.github.OleksiyM.GnomeLngSwitcher

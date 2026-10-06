@@ -18,7 +18,7 @@ fn main() {
 
     if args.iter().any(|arg| arg == "--about") {
         let app = adw::Application::builder()
-            .application_id("org.gnome.GnomeLngSwitcher.About")
+            .application_id("io.github.OleksiyM.GnomeLngSwitcher.About")
             .build();
 
         app.connect_activate(|app| {
@@ -30,7 +30,7 @@ fn main() {
     }
 
     let app = adw::Application::builder()
-        .application_id("org.gnome.GnomeLngSwitcher")
+        .application_id("io.github.OleksiyM.GnomeLngSwitcher")
         .build();
 
     app.connect_activate(gui::build_ui);

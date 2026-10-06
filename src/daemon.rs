@@ -407,6 +407,23 @@ fn log_msg(msg: &str) {
     }
 }
 
+fn spawn_gui(args: &[&str]) {
+    if let Ok(exe_path) = std::env::current_exe() {
+        log_msg(&format!("[Tray] Spawning GUI ({:?}) from {:?}", args, exe_path));
+        match std::process::Command::new(exe_path).args(args).spawn() {
+            Ok(mut child) => {
+                log_msg("[Tray] GUI spawned successfully");
+                std::thread::spawn(move || {
+                    let _ = child.wait();
+                });
+            }
+            Err(e) => log_msg(&format!("[Tray] Failed to spawn GUI: {:?}", e)),
+        }
+    } else {
+        log_msg("[Tray] Failed to get current_exe path");
+    }
+}
+
 struct SwitcherTray;
 
 impl ksni::Tray for SwitcherTray {
@@ -426,15 +443,7 @@ impl ksni::Tray for SwitcherTray {
 
     fn activate(&mut self, _x: i32, _y: i32) {
         log_msg("[Tray] Activate called");
-        if let Ok(exe_path) = std::env::current_exe() {
-            log_msg(&format!("[Tray] Spawning GUI from {:?}", exe_path));
-            match std::process::Command::new(exe_path).spawn() {
-                Ok(_) => log_msg("[Tray] GUI spawned successfully"),
-                Err(e) => log_msg(&format!("[Tray] Failed to spawn GUI: {:?}", e)),
-            }
-        } else {
-            log_msg("[Tray] Failed to get current_exe path");
-        }
+        spawn_gui(&[]);
     }
 
     fn menu(&self) -> Vec<ksni::MenuItem<Self>> {
@@ -444,15 +453,7 @@ impl ksni::Tray for SwitcherTray {
                 label: "Settings".to_string(),
                 activate: Box::new(|_this: &mut SwitcherTray| {
                     log_msg("[Tray Menu] Settings clicked");
-                    if let Ok(exe_path) = std::env::current_exe() {
-                        log_msg(&format!("[Tray Menu] Spawning GUI from {:?}", exe_path));
-                        match std::process::Command::new(exe_path).spawn() {
-                            Ok(_) => log_msg("[Tray Menu] GUI spawned successfully"),
-                            Err(e) => log_msg(&format!("[Tray Menu] Failed to spawn GUI: {:?}", e)),
-                        }
-                    } else {
-                        log_msg("[Tray Menu] Failed to get current_exe path");
-                    }
+                    spawn_gui(&[]);
                 }),
                 ..Default::default()
             }
@@ -461,13 +462,7 @@ impl ksni::Tray for SwitcherTray {
                 label: "About...".to_string(),
                 activate: Box::new(|_this: &mut SwitcherTray| {
                     log_msg("[Tray Menu] About clicked");
-                    if let Ok(exe_path) = std::env::current_exe() {
-                        log_msg(&format!(
-                            "[Tray Menu] Spawning About dialog from {:?}",
-                            exe_path
-                        ));
-                        let _ = std::process::Command::new(exe_path).arg("--about").spawn();
-                    }
+                    spawn_gui(&["--about"]);
                 }),
                 ..Default::default()
             }

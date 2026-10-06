@@ -473,12 +473,17 @@ pub fn build_ui(app: &adw::Application) {
             }
         } else if let Ok(exe_path) = std::env::current_exe() {
             // Decouple spawned daemon from terminal stdio to prevent SIGHUP on close
-            let _ = std::process::Command::new(exe_path)
+            if let Ok(mut child) = std::process::Command::new(exe_path)
                 .arg("--daemon")
                 .stdout(std::process::Stdio::null())
                 .stderr(std::process::Stdio::null())
                 .stdin(std::process::Stdio::null())
-                .spawn();
+                .spawn()
+            {
+                std::thread::spawn(move || {
+                    let _ = child.wait();
+                });
+            }
         }
         std::thread::sleep(std::time::Duration::from_millis(300));
         refresh_daemon_row(&daemon_row, &daemon_icon, btn);

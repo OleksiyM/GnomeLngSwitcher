@@ -568,14 +568,12 @@
                     <button id="mode-manual" class="tab-btn" onclick="setInstallMode('manual')">Pinned &amp; Verified</button>
                 </div>
             </div>
-            </div>
             <div class="terminal-box">
                 <button class="terminal-copy-btn" onclick="copyTerminalText()">Copy</button>
                 <div class="terminal-header">
                     <span>bash</span>
-                    <span>Terminal</span>
                 </div>
-                <pre id="terminal-content" style="white-space: pre-wrap; word-break: break-all; color: var(--text-secondary); font-family: monospace; line-height: 1.6; margin: 0; padding: 0;">curl -fsSL https://raw.githubusercontent.com/OleksiyM/GnomeLngSwitcher/main/install.sh | bash</pre>
+                <pre id="terminal-content" style="white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text-secondary); font-family: monospace; line-height: 1.6; margin: 0; padding: 0;">curl -fsSL https://raw.githubusercontent.com/OleksiyM/GnomeLngSwitcher/main/install.sh | bash</pre>
             </div>
         </div>
     </section>

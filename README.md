@@ -1,143 +1,134 @@
-# GNOME Keyboard Layout Switcher
+# GnomeLngSwitcher
 
-A lightweight, high-performance system utility for seamless Control-key language switching on GNOME Linux (supporting both Wayland and X11 sessions). 
+Control-key keyboard layout switching for **GNOME** (Wayland and X11).
 
-Tapping the **Left Control** key switches the input layout directly to your primary language (e.g. English), and tapping the **Right Control** key cycles through alternative layouts (Russian, Ukrainian, etc.). It runs as a low-level background daemon and includes a native GTK4/Libadwaita configuration interface.
+* Tap **Left Control**: switch straight to your main layout (e.g. English).
+* Tap **Right Control**: cycle through the layouts you choose (e.g. German, Spanish, Ukrainian).
+* Normal shortcuts (`Ctrl+C`, `Ctrl+Alt+T`, holding Control) never trigger a switch.
+
+It consists of a small background daemon that reads key events from `/dev/input`, a native GTK4/Libadwaita settings window, and a tiny GNOME Shell extension that performs the actual layout change.
+
+![GnomeLngSwitcher settings window](docs/gls-dark.png)
+
+Website: <https://oleksiym.github.io/GnomeLngSwitcher/>
 
 ---
 
-## 🚀 Option A: Quick Install & Update (Recommended)
+## Requirements
 
-To install or update to the latest version automatically in one command:
+* GNOME Shell 45 – 50 (the extension is declared for these versions)
+* `x86_64` or `aarch64` Linux, with GTK 4 and libadwaita runtime libraries (present on any current GNOME desktop)
+* `curl`, `tar`, `sha256sum` for the installer (present on virtually every system)
+* Your user must be in the `input` group (see [First run](#first-run))
+
+Built and tested on **Fedora 44**.
+
+## Install / update
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/OleksiyM/GnomeLngSwitcher/main/install.sh | bash
 ```
 
-> **What this script does:**
-> * Detects CPU architecture (`x86_64` or `aarch64`).
-> * Downloads the latest pre-compiled binary and places it in `~/Applications/GnomeLngSwitcher/`.
-> * Installs/updates the GNOME Shell extension helper in `~/.local/share/gnome-shell/extensions/`.
-> * Restarts the background daemon automatically.
+The installer works from a release archive and never installs anything outside your home directory (no `sudo`):
 
----
+1. Downloads `gnome-lng-switcher-<version>-<arch>.tar.gz` and `SHA256SUMS` from the latest GitHub release.
+2. Verifies the SHA-256 checksum. If the [GitHub CLI](https://cli.github.com/) (`gh`) is installed, it also verifies the signed build provenance (Sigstore attestation) of the archive.
+3. Installs the binary and `uninstall.sh` to `~/Applications/GnomeLngSwitcher/`, the extension to `~/.local/share/gnome-shell/extensions/gnome-lng-switcher@oleksiym.github.io/`, and an application launcher.
+4. Restarts the daemon.
 
-## 🛠️ Option B: Manual Installation (Step-by-Step)
+Options (download the script first to use them):
 
-If you prefer to configure everything manually or customize paths:
+```bash
+curl -fsSLO https://raw.githubusercontent.com/OleksiyM/GnomeLngSwitcher/main/install.sh
+bash install.sh --version v1.0.0          # install a specific release
+bash install.sh --require-provenance      # fail unless the signed provenance could be verified
+```
 
-### Step 1: Install System Dependencies
-Since this utility uses a native GTK4/Libadwaita interface, make sure the required development libraries are installed on your Linux machine:
+The install location can be changed with `GNOME_LNG_SWITCHER_APP_DIR`.
 
-*   **Ubuntu / Debian:**
-    ```bash
-    sudo apt update
-    sudo apt install -y libgtk-4-dev libadwaita-1-dev build-essential pkg-config
-    ```
-*   **Fedora:**
-    ```bash
-    sudo dnf install -y gtk4-devel libadwaita-devel pkgconfig
-    ```
+### Manual install from the archive
 
----
+```bash
+VERSION=1.0.0; ARCH=$(uname -m)     # x86_64 or aarch64
+BASE=https://github.com/OleksiyM/GnomeLngSwitcher/releases/download/v$VERSION
+curl -fLO $BASE/gnome-lng-switcher-$VERSION-$ARCH.tar.gz
+curl -fLO $BASE/SHA256SUMS
+sha256sum --check --ignore-missing SHA256SUMS
+# optional, with the GitHub CLI:
+gh attestation verify gnome-lng-switcher-$VERSION-$ARCH.tar.gz --repo OleksiyM/GnomeLngSwitcher
+tar -xzf gnome-lng-switcher-$VERSION-$ARCH.tar.gz
+```
 
-### Step 2: Download and Extract the Binary
-1. Download the latest release archive for your architecture:
-   * **x86_64 (Intel / AMD):**
-     ```bash
-     wget https://github.com/OleksiyM/GnomeLngSwitcher/releases/latest/download/gnome-lng-switcher-x86_64.tar.gz
-     tar -xzf gnome-lng-switcher-x86_64.tar.gz
-     chmod +x gnome-lng-switcher
-     ```
-   * **aarch64 (ARM):**
-     ```bash
-     wget https://github.com/OleksiyM/GnomeLngSwitcher/releases/latest/download/gnome-lng-switcher-aarch64.tar.gz
-     tar -xzf gnome-lng-switcher-aarch64.tar.gz
-     chmod +x gnome-lng-switcher
-     ```
+The archive contains the binary, the extension (`extension/`), the launcher template (`data/`) and `uninstall.sh`. Running `install.sh` is the supported way to place them.
 
----
+## First run
 
-### Step 3: Grant Input Device Permissions
-To capture low-level keyboard keys (like standalone Control keys) on Wayland and X11 without using `sudo`, your user needs permission to read `/dev/input/` events:
-
-1. Add your user to the system `input` group:
+1. **Input group.** To read the Control keys without root, add yourself to the `input` group and log out and back in:
    ```bash
    sudo usermod -aG input $USER
    ```
-2. **Crucial:** You must **Log Out** of your desktop session and **Log Back In** (or reboot your PC) for the new group permissions to apply.
-
----
-
-### Step 4: Install & Enable GNOME Shell Helper Extension
-Modern GNOME Shell sessions restrict programmatic layout switching. We use a tiny helper extension as a D-Bus bridge. 
-
-1. Launch the configuration GUI:
+2. **Shell extension.** After the first install, log out and back in once so GNOME Shell discovers the new extension, then enable it:
    ```bash
-   ./gnome-lng-switcher
+   gnome-extensions enable gnome-lng-switcher@oleksiym.github.io
    ```
-2. In the **Access & Daemon Status** section, locate the **GNOME Extension Helper** row and click the **«Enable Helper»** button.
-3. **Log Out** and **Log Back In** one more time. This is mandatory so GNOME Shell can discover the newly created extension directory on the disk and load it in memory.
+   (or switch it on in the **Extensions** app).
+3. Open **GnomeLngSwitcher** from the application grid. All three rows under **System Status** should show a green check.
+4. Choose the layout for **Left Control** and the layouts to cycle with **Right Control**, and adjust **Tap Duration** if needed. Changes are saved immediately.
+5. Optionally turn on **Launch at Login**.
 
----
+Closing the window does not stop the daemon. Use **Stop Daemon** to stop it.
 
-### Step 5: Configure and Start the Daemon
-1. Launch the utility again:
-   ```bash
-   ./gnome-lng-switcher
-   ```
-2. Ensure all top indicators are green:
-   *   **Accessibility Access:** Active
-   *   **GNOME Extension Helper:** Active
-3. Select your desired behaviors:
-   *   **Left Control:** Choose your default language (usually US English).
-   *   **Right Control:** Check the layout options you want to cycle through (e.g. Russian, Ukrainian).
-4. Click **«Start Daemon»** to launch the background event listener service.
-5. *(Optional)* Turn on **Launch at Login** to autostart the switcher silently when you boot your PC.
-6. Click the **«Close»** button in the header bar. The settings window will close, but the key listener daemon will keep running silently in the background.
+The **Settings** button of the extension (Extensions app → *GnomeLngSwitcher*) opens the same application window. The **About** window (ⓘ in the header bar) checks GitHub for a newer release.
 
----
+## Uninstall
 
-## Running in the Background (CLI)
-
-If you launch the daemon from the GUI, it automatically detaches from the terminal and continues running silently in the background.
-
-If you prefer to start the daemon manually from the terminal and want it to persist after closing the terminal window, use one of the following commands:
-
-### Method 1: Using `disown` (Recommended)
 ```bash
-./gnome-lng-switcher --daemon >/dev/null 2>&1 & disown
+bash ~/Applications/GnomeLngSwitcher/uninstall.sh          # keeps your settings
+bash ~/Applications/GnomeLngSwitcher/uninstall.sh --purge  # also removes ~/.config/gnome-lng-switcher
 ```
 
-### Method 2: Using `nohup`
+Log out and back in afterwards to unload the cached extension code.
+
+## Running the daemon from a terminal
+
+The GUI and the installer start the daemon detached from the terminal. To run it by hand:
+
 ```bash
-nohup ./gnome-lng-switcher --daemon >/dev/null 2>&1 &
+~/Applications/GnomeLngSwitcher/gnome-lng-switcher --daemon >/dev/null 2>&1 & disown
 ```
 
----
+## Configuration
 
-## Advanced Options (Window Size Tuning)
-
-If you have custom system display scale configurations (e.g., fractional scaling or high DPI screens) and the GUI window has small scrollbars, you can override its default dimensions manually.
-
-Open your local configuration file at `~/.config/gnome-lng-switcher/config.json` and add the custom size parameters:
+Settings live in `~/.config/gnome-lng-switcher/config.json`. Besides the options in the GUI you can set the settings window size, which is useful with fractional scaling or HiDPI:
 
 ```json
 {
   "left_ctrl_layout": 0,
-  "right_ctrl_layouts": [1],
+  "right_ctrl_layouts": [1, 2],
   "sensitivity_ms": 300,
   "window_width": 540,
-  "window_height": 724
+  "window_height": 780
 }
 ```
 
-*   **`window_width`** (optional): Width of the settings window in pixels (default fallback: `540`).
-*   **`window_height`** (optional): Height of the settings window in pixels (default fallback: `660`).
+`window_width` / `window_height` are optional (defaults: 540 × 780).
 
----
+## Building from source
 
-## 🌟 Project & Source Code
+Fedora:
 
-GitHub Repository: [https://github.com/OleksiyM/GnomeLngSwitcher](https://github.com/OleksiyM/GnomeLngSwitcher)
+```bash
+sudo dnf install -y cargo rust gtk4-devel libadwaita-devel openssl-devel pkgconf gcc
+cargo build --release --locked
+./scripts/build-package.sh      # builds dist/gnome-lng-switcher-<version>-<arch>.tar.gz
+```
 
+Ubuntu / Debian: `sudo apt install -y cargo libgtk-4-dev libadwaita-1-dev libssl-dev pkg-config build-essential`.
+
+## Releases
+
+Releases are produced by GitHub Actions when a `vX.Y.Z` tag is pushed ([release.yml](.github/workflows/release.yml)). The tag must match the version in `Cargo.toml` and `extension/metadata.json` (`./scripts/check-version.sh vX.Y.Z` verifies this). Archives are built inside a `fedora:44` container for `x86_64` and `aarch64`, attested with Sigstore build provenance, and published with a signed `SHA256SUMS`.
+
+## License
+
+[MIT](LICENSE)

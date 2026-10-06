@@ -2,6 +2,9 @@
 name = "gnome-lng-switcher"
 version = "0.1.16"
 edition = "2021"
+description = "Control-key keyboard layout switcher for GNOME (Wayland and X11)"
+license = "MIT"
+repository = "https://github.com/OleksiyM/GnomeLngSwitcher"
 
 [dependencies]
 gtk = { version = "0.7", package = "gtk4", features = ["v4_8"] }

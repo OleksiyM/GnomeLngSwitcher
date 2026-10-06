@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GNOME Keyboard Layout Switcher — Control-key switcher for Linux</title>
+    <title>GnomeLngSwitcher — Control-key keyboard layout switcher for GNOME</title>
     
     <!-- SEO Meta Tags -->
     <meta name="description" content="A lightweight system utility for seamless Control-key language switching on GNOME Linux. Switch to English with Left Control and cycle layouts with Right Control. Supports Wayland and X11.">
@@ -13,9 +13,9 @@
     <!-- Open Graph / Card Info -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://oleksiym.github.io/GnomeLngSwitcher/">
-    <meta property="og:title" content="GNOME Keyboard Layout Switcher">
+    <meta property="og:title" content="GnomeLngSwitcher — Control-key layout switcher for GNOME">
     <meta property="og:description" content="Switch to default layout with Left Control and cycle layouts with Right Control. Lightweight, native, and built for modern GNOME desktop environments.">
-    <meta property="og:image" content="gnome_switcher_mockup.png">
+    <meta property="og:image" content="https://oleksiym.github.io/GnomeLngSwitcher/gls-dark.png">
 
     <!-- Web Application Aesthetics & Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -261,68 +261,13 @@
             transform: translateY(-2px);
         }
 
-        /* Mockup Window Container */
-        .mockup-container {
-            perspective: 1000px;
-        }
-
-        .mockup-window {
-            background: var(--window-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
-            transform: rotateY(-8deg) rotateX(4deg);
-            transition: transform 0.5s ease;
-        }
-
-        .mockup-window:hover {
-            transform: rotateY(0deg) rotateX(0deg);
-        }
-
-        @media (max-width: 820px) {
-            .mockup-window {
-                transform: none !important;
-                max-width: 500px;
-                margin: 0 auto;
-            }
-        }
-
-        .mockup-header {
-            background: #1c1c1c;
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .mockup-buttons {
-            display: flex;
-            gap: 6px;
-        }
-
-        .mockup-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #4a4a4a;
-        }
-
-        .mockup-dot.close { background: #e01b24; }
-        .mockup-dot.minimize { background: #f6c177; }
-        .mockup-dot.maximize { background: #2ec27e; }
-
-        .mockup-title {
-            margin: 0 auto;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-secondary);
-        }
-
-        .mockup-content img {
-            width: 100%;
-            height: auto;
+        /* Application screenshot */
+        .hero-shot {
             display: block;
+            width: 100%;
+            max-width: 460px;
+            height: auto;
+            margin: 0 auto;
         }
 
         /* Quick Terminal Installation Mockup */
@@ -599,27 +544,14 @@
                         <a href="#install" class="btn-primary">Quick Install / Update</a>
                     </div>
                     <div class="hero-download-row">
-                        <a id="btn-download-x86" href="https://github.com/OleksiyM/GnomeLngSwitcher/releases/latest/download/gnome-lng-switcher-x86_64.tar.gz" class="btn-secondary">Download x86_64</a>
-                        <a id="btn-download-arm" href="https://github.com/OleksiyM/GnomeLngSwitcher/releases/latest/download/gnome-lng-switcher-aarch64.tar.gz" class="btn-secondary">Download aarch64 (ARM)</a>
+                        <a id="btn-download-x86" href="https://github.com/OleksiyM/GnomeLngSwitcher/releases/latest" class="btn-secondary">Download x86_64</a>
+                        <a id="btn-download-arm" href="https://github.com/OleksiyM/GnomeLngSwitcher/releases/latest" class="btn-secondary">Download aarch64 (ARM)</a>
                     </div>
                 </div>
             </div>
             
-            <div class="mockup-container">
-                <div class="mockup-window">
-                    <div class="mockup-header">
-                        <div class="mockup-buttons">
-                            <span class="mockup-dot close"></span>
-                            <span class="mockup-dot minimize"></span>
-                            <span class="mockup-dot maximize"></span>
-                        </div>
-                        <div class="mockup-title">GnomeLngSwitcher</div>
-                    </div>
-                    <div class="mockup-content">
-                        <!-- Embedded Generated Mockup Image -->
-                        <img src="gnome_switcher_mockup.png" alt="GnomeLngSwitcher User Interface Mockup" onerror="this.src='https://placehold.co/420x420/242424/ffffff?text=GnomeLngSwitcher'">
-                    </div>
-                </div>
+            <div>
+                <img class="hero-shot" src="gls-dark.png" alt="GnomeLngSwitcher settings window: status of input access, background service and GNOME extension, Left and Right Control layouts, tap duration">
             </div>
         </header>
     </div>
@@ -629,17 +561,13 @@
         <div class="container" style="max-width: 800px;">
             <div class="section-header" style="margin-bottom: 30px; text-align: center;">
                 <h2 style="font-family: var(--font-title); font-size: 26px;">Quick Install &amp; Update</h2>
-                <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">One command to install or update the daemon and GNOME extension</p>
+                <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">One command installs or updates the app and GNOME extension from a checksum-verified release archive</p>
                 <!-- Mode Selector Pill -->
                 <div class="arch-selector" style="display: flex; justify-content: center; gap: 8px; margin-top: 12px;">
                     <button id="mode-oneliner" class="tab-btn active" onclick="setInstallMode('oneliner')">One-Liner (Recommended)</button>
-                    <button id="mode-manual" class="tab-btn" onclick="setInstallMode('manual')">Manual Archive</button>
+                    <button id="mode-manual" class="tab-btn" onclick="setInstallMode('manual')">Pinned &amp; Verified</button>
                 </div>
-                <!-- Arch Selector Pill (visible in manual mode) -->
-                <div id="manual-arch-selector" style="display: none; justify-content: center; gap: 8px; margin-top: 12px;">
-                    <button id="arch-x86" class="tab-btn active" onclick="setTerminalArch('x86_64')">x86_64 (Intel/AMD)</button>
-                    <button id="arch-arm" class="tab-btn" onclick="setTerminalArch('aarch64')">aarch64 (ARM)</button>
-                </div>
+            </div>
             </div>
             <div class="terminal-box">
                 <button class="terminal-copy-btn" onclick="copyTerminalText()">Copy</button>
@@ -677,7 +605,7 @@
                     </svg>
                 </div>
                 <h3>Wayland & X11 Native</h3>
-                <p>Fully compliant with modern Linux display servers. Listens directly to `/dev/input` events, avoiding limitations of window managers.</p>
+                <p>Fully compliant with modern Linux display servers. Listens directly to <code>/dev/input</code> events, avoiding limitations of window managers.</p>
             </div>
 
             <div class="feature-card">
@@ -688,7 +616,7 @@
                     </svg>
                 </div>
                 <h3>GTK4 / Libadwaita GUI</h3>
-                <p>An easy-to-use native settings interface that adapts to light/dark themes. Save config directly or schedule service auto-start at login.</p>
+                <p>An easy-to-use native settings interface that adapts to light/dark themes. Changes are saved instantly, and the service can start automatically at login.</p>
             </div>
         </div>
     </section>
@@ -702,37 +630,35 @@
 
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab(event, 'tab-oneliner')">✨ One-Liner (Fastest)</button>
-            <button class="tab-btn" onclick="switchTab(event, 'tab-dependencies')">1. Dependencies</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab-dependencies')">1. Requirements</button>
             <button class="tab-btn" onclick="switchTab(event, 'tab-permissions')">2. Permissions</button>
             <button class="tab-btn" onclick="switchTab(event, 'tab-helper')">3. GNOME Extension</button>
             <button class="tab-btn" onclick="switchTab(event, 'tab-run')">4. Launch &amp; Configure</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab-uninstall')">5. Uninstall</button>
         </div>
 
         <div id="tab-oneliner" class="tab-content active">
             <h3>Automated Installer &amp; Updater</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 16px;">The easiest way to install or update GnomeLngSwitcher. It detects your CPU architecture, installs the latest binary and GNOME extension, and restarts the background service:</p>
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">The easiest way to install or update GnomeLngSwitcher. It detects your CPU architecture, downloads the release archive, verifies its SHA-256 checksum (and the signed build provenance, if the GitHub CLI is installed), installs everything into your home directory and restarts the background service. No <code>sudo</code> needed:</p>
             <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 18px; margin-bottom: 16px;">
                 <code style="color: var(--accent-blue); font-size: 15px;">curl -fsSL https://raw.githubusercontent.com/OleksiyM/GnomeLngSwitcher/main/install.sh | bash</code>
             </div>
-            <p style="color: var(--text-muted); font-size: 13px;">💡 Note: If you haven't added yourself to the <code>input</code> group yet, run <code>sudo usermod -aG input $USER</code> and log out once.</p>
+            <p style="color: var(--text-muted); font-size: 13px;">💡 Note: you still need to join the <code>input</code> group and log out once (see step 2), and enable the extension after your first login (step 3).</p>
         </div>
 
         <div id="tab-dependencies" class="tab-content">
-            <h3>Install Required Libraries</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 16px;">Make sure you have GTK4 and Libadwaita development packages installed on your Linux system:</p>
+            <h3>Requirements</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">Nothing to compile and nothing to install separately on a current GNOME desktop:</p>
             <ol>
-                <li><strong>Ubuntu / Debian:</strong><br>
-                    <code>sudo apt update &amp;&amp; sudo apt install -y libgtk-4-dev libadwaita-1-dev build-essential pkg-config</code>
-                </li>
-                <li><strong>Fedora:</strong><br>
-                    <code>sudo dnf install -y gtk4-devel libadwaita-devel pkgconfig</code>
-                </li>
+                <li><strong>GNOME Shell 45 – 50</strong> on <code>x86_64</code> or <code>aarch64</code> Linux (Wayland or X11). Built and tested on Fedora 44.</li>
+                <li><strong>GTK 4 and libadwaita</strong> runtime libraries, which ship with GNOME.</li>
+                <li><code>curl</code>, <code>tar</code> and <code>sha256sum</code> for the installer.</li>
             </ol>
         </div>
 
         <div id="tab-permissions" class="tab-content">
             <h3>Grant Keyboard Event Access</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 16px;">To capture standalone control keys, the utility needs read permissions for keyboard events in `/dev/input` without requiring `sudo`:</p>
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">To capture standalone control keys, the utility needs read permissions for keyboard events in <code>/dev/input</code> without requiring <code>sudo</code>:</p>
             <ol>
                 <li>Add your user account to the system <code>input</code> group:<br>
                     <code>sudo usermod -aG input $USER</code>
@@ -742,25 +668,34 @@
         </div>
 
         <div id="tab-helper" class="tab-content">
-            <h3>Enable D-Bus Layout Helper</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 16px;">Modern GNOME Shell blocks programmatic layout switches by default. We install a tiny GNOME extension helper to act as a bridge:</p>
+            <h3>Enable the GNOME Shell Extension</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">Modern GNOME Shell blocks programmatic layout switches by default. A tiny extension acts as the bridge. The installer places it for you; GNOME Shell only discovers a new extension at login:</p>
             <ol>
-                <li>Run GnomeLngSwitcher settings: <code>./gnome-lng-switcher</code></li>
-                <li>In the <strong>Access &amp; Daemon Status</strong> category, find <strong>GNOME Extension Helper</strong> and click <strong>"Enable Helper"</strong>.</li>
-                <li><strong>Log out</strong> and <strong>log in</strong> once more to load the GNOME Shell helper extension into session memory.</li>
+                <li><strong>Log out</strong> and <strong>log in</strong> once after the first install.</li>
+                <li>Enable it: <code>gnome-extensions enable gnome-lng-switcher@oleksiym.github.io</code> (or switch it on in the <strong>Extensions</strong> app).</li>
+                <li>The extension's <strong>Settings</strong> button in the Extensions app opens the GnomeLngSwitcher window.</li>
             </ol>
         </div>
 
         <div id="tab-run" class="tab-content">
-            <h3>Start Layout Switching Daemon</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 16px;">Run the app settings window again to start the daemon process and toggle preferences:</p>
+            <h3>Configure and Start</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">Open <strong>GnomeLngSwitcher</strong> from the application grid:</p>
             <ol>
-                <li>Launch GUI: <code>./gnome-lng-switcher</code></li>
-                <li>Ensure all status indicators show green (Accessibility Access and GNOME Extension Helper are active).</li>
-                <li>Configure layout assignments for Left and Right Control keys.</li>
-                <li>Click <strong>"Start Daemon"</strong> to activate background keyboard interception.</li>
-                <li>Toggle <strong>"Launch at Login"</strong> if you want layout switcher to launch silently during PC boot.</li>
+                <li>Under <strong>System Status</strong>, all three rows should show a green check: Input Device Access, Background Service and GNOME Shell Extension.</li>
+                <li>Pick the layout for <strong>Left Control</strong> and the layouts to cycle with <strong>Right Control</strong>.</li>
+                <li>Adjust <strong>Tap Duration</strong> if taps are missed or triggered by slow presses.</li>
+                <li>Use <strong>Start Daemon</strong> if the service is not running, and turn on <strong>Launch at Login</strong> to start it automatically.</li>
             </ol>
+            <p style="color: var(--text-muted); font-size: 13px; margin-top: 12px;">Closing the window keeps the daemon running. The About window (ⓘ) tells you when a newer release is available.</p>
+        </div>
+
+        <div id="tab-uninstall" class="tab-content">
+            <h3>Uninstall</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">The installer leaves an uninstaller next to the app:</p>
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 18px; margin-bottom: 16px;">
+                <code style="color: var(--accent-blue); font-size: 15px;">bash ~/Applications/GnomeLngSwitcher/uninstall.sh</code>
+            </div>
+            <p style="color: var(--text-muted); font-size: 13px;">Your settings are kept; add <code>--purge</code> to remove them as well. Log out and back in afterwards to unload the extension code.</p>
         </div>
     </section>
 
@@ -769,27 +704,29 @@
         <p>GnomeLngSwitcher is open-source software, licensed under MIT. | Built by Alex &amp; Eva.</p>
         <p style="margin-top: 8px;">
             <a href="https://github.com/OleksiyM/GnomeLngSwitcher">GitHub Repository</a> &bull; 
-            <a href="https://github.com/OleksiyM/GnomeLngSwitcher/releases">Releases</a>
+            <a href="https://github.com/OleksiyM/GnomeLngSwitcher/releases">Releases</a> &bull; 
+            <a href="https://github.com/OleksiyM/GnomeLngSwitcher/blob/main/LICENSE">MIT License</a>
         </p>
     </footer>
 
     <!-- Tab Switching Logic & Text Copying -->
     <script>
+        const REPO_RAW = 'https://raw.githubusercontent.com/OleksiyM/GnomeLngSwitcher';
+        const ONE_LINER = `curl -fsSL ${REPO_RAW}/main/install.sh | bash`;
         let currentMode = 'oneliner';
-        let currentArch = 'x86_64';
-        let currentTag = 'latest';
+        let currentTag = 'vX.Y.Z';
 
         function switchTab(evt, tabId) {
             var tabContents = document.getElementsByClassName("tab-content");
             for (var i = 0; i < tabContents.length; i++) {
                 tabContents[i].classList.remove("active");
             }
-            
+
             var tabButtons = document.getElementsByClassName("tab-btn");
             for (var i = 0; i < tabButtons.length; i++) {
                 tabButtons[i].classList.remove("active");
             }
-            
+
             document.getElementById(tabId).classList.add("active");
             evt.currentTarget.classList.add("active");
         }
@@ -798,54 +735,24 @@
             currentMode = mode;
             document.getElementById('mode-oneliner').classList.toggle('active', mode === 'oneliner');
             document.getElementById('mode-manual').classList.toggle('active', mode === 'manual');
-            
-            const archSelector = document.getElementById('manual-arch-selector');
-            if (archSelector) {
-                archSelector.style.display = (mode === 'manual') ? 'flex' : 'none';
+            renderTerminal();
+        }
+
+        function terminalText() {
+            if (currentMode === 'oneliner') {
+                return ONE_LINER;
             }
-            renderTerminal();
-        }
-
-        function setTerminalArch(arch) {
-            currentArch = arch;
-            document.getElementById('arch-x86').classList.toggle('active', arch === 'x86_64');
-            document.getElementById('arch-arm').classList.toggle('active', arch === 'aarch64');
-            renderTerminal();
-        }
-
-        function updateTerminalCommands(tag) {
-            currentTag = tag;
-            renderTerminal();
+            // Pinned version, installer refuses to continue unless signed provenance verifies (needs the gh CLI).
+            return `curl -fsSLO ${REPO_RAW}/${currentTag}/install.sh
+bash install.sh --version ${currentTag} --require-provenance`;
         }
 
         function renderTerminal() {
-            if (currentMode === 'oneliner') {
-                document.getElementById('terminal-content').textContent = 'curl -fsSL https://raw.githubusercontent.com/OleksiyM/GnomeLngSwitcher/main/install.sh | bash';
-                return;
-            }
-            const tagPart = currentTag === 'latest' ? 'latest/download' : `download/${currentTag}`;
-            const commands = `$ wget https://github.com/OleksiyM/GnomeLngSwitcher/releases/${tagPart}/gnome-lng-switcher-${currentArch}.tar.gz
-$ tar -xzf gnome-lng-switcher-${currentArch}.tar.gz
-$ chmod +x gnome-lng-switcher
-$ sudo usermod -aG input $USER
-$ ./gnome-lng-switcher`;
-            document.getElementById('terminal-content').textContent = commands;
+            document.getElementById('terminal-content').textContent = terminalText();
         }
 
         function copyTerminalText() {
-            let textToCopy = "";
-            if (currentMode === 'oneliner') {
-                textToCopy = 'curl -fsSL https://raw.githubusercontent.com/OleksiyM/GnomeLngSwitcher/main/install.sh | bash';
-            } else {
-                const tagPart = currentTag === 'latest' ? 'latest/download' : `download/${currentTag}`;
-                textToCopy = `wget https://github.com/OleksiyM/GnomeLngSwitcher/releases/${tagPart}/gnome-lng-switcher-${currentArch}.tar.gz
-tar -xzf gnome-lng-switcher-${currentArch}.tar.gz
-chmod +x gnome-lng-switcher
-sudo usermod -aG input $USER
-./gnome-lng-switcher`;
-            }
-            
-            navigator.clipboard.writeText(textToCopy).then(() => {
+            navigator.clipboard.writeText(terminalText()).then(() => {
                 const copyBtn = document.querySelector(".terminal-copy-btn");
                 copyBtn.innerText = "Copied!";
                 setTimeout(() => {
@@ -860,17 +767,15 @@ sudo usermod -aG input $USER
         fetch('https://api.github.com/repos/OleksiyM/GnomeLngSwitcher/releases/latest')
             .then(response => response.json())
             .then(data => {
-                const tag = data.tag_name;
-                const x86Asset = data.assets.find(a => a.name.includes('x86_64'));
-                const armAsset = data.assets.find(a => a.name.includes('aarch64'));
-                
-                const x86Url = x86Asset ? x86Asset.browser_download_url : `https://github.com/OleksiyM/GnomeLngSwitcher/releases/download/${tag}/gnome-lng-switcher-x86_64.tar.gz`;
-                const armUrl = armAsset ? armAsset.browser_download_url : `https://github.com/OleksiyM/GnomeLngSwitcher/releases/download/${tag}/gnome-lng-switcher-aarch64.tar.gz`;
-                
-                document.getElementById('btn-download-x86').href = x86Url;
-                document.getElementById('btn-download-arm').href = armUrl;
-                
-                updateTerminalCommands(tag);
+                const archives = (data.assets || []).filter(a => a.name.endsWith('.tar.gz'));
+                const x86Asset = archives.find(a => a.name.includes('x86_64'));
+                const armAsset = archives.find(a => a.name.includes('aarch64'));
+
+                if (x86Asset) document.getElementById('btn-download-x86').href = x86Asset.browser_download_url;
+                if (armAsset) document.getElementById('btn-download-arm').href = armAsset.browser_download_url;
+
+                if (data.tag_name) currentTag = data.tag_name;
+                renderTerminal();
             })
             .catch(err => {
                 console.error("Error fetching latest release:", err);

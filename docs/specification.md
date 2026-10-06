@@ -1,5 +1,7 @@
 # Specification: Linux GNOME Keyboard Layout Switcher (GnomeLngSwitcher)
 
+> **Note:** This is the original design specification the project started from (kept for history). The implementation has since evolved: releases are installed from signed archives, the extension lives in `extension/`, and the settings window was redesigned. For the current behaviour and installation, see the [README](../README.md).
+
 This specification defines the requirements and architecture for porting the `MacLngSwitcher` utility to Linux running the **GNOME** desktop environment (supporting both **Wayland** and **X11** sessions).
 
 ---

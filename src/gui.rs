@@ -106,7 +106,10 @@ fn is_extension_enabled() -> bool {
         .any(|line| line.trim() == "gnome-lng-switcher@oleksiym.github.io")
 }
 
-fn install_and_enable_extension() -> Result<(), Box<dyn std::error::Error>> {
+/// Installs the bundled extension files and tries to enable it.
+/// Returns `true` only if GNOME Shell reports it enabled; on a fresh install under
+/// Wayland the Shell cannot see a new extension until the next login (`false`).
+fn install_and_enable_extension() -> Result<bool, Box<dyn std::error::Error>> {
     let home = std::env::var("HOME")?;
     let ext_dir = std::path::PathBuf::from(home)
         .join(".local")
@@ -128,9 +131,9 @@ fn install_and_enable_extension() -> Result<(), Box<dyn std::error::Error>> {
     // Try to enable the extension
     let _ = std::process::Command::new("gnome-extensions")
         .args(["enable", "gnome-lng-switcher@oleksiym.github.io"])
-        .status();
+        .output();
 
-    Ok(())
+    Ok(is_extension_enabled())
 }
 
 fn status_icon() -> Image {
@@ -517,9 +520,16 @@ pub fn build_ui(app: &adw::Application) {
             .build();
         enable_ext_btn.connect_clicked(
             clone!(@weak extension_row, @weak extension_icon => move |btn| {
-                if install_and_enable_extension().is_ok() {
-                    apply_status(&extension_row, &extension_icon, true, "Enabled: lets the switcher change layouts");
-                    btn.set_sensitive(false);
+                match install_and_enable_extension() {
+                    Ok(true) => {
+                        apply_status(&extension_row, &extension_icon, true, "Enabled: lets the switcher change layouts");
+                        btn.set_visible(false);
+                    }
+                    Ok(false) => {
+                        apply_status(&extension_row, &extension_icon, false, "Installed: log out and back in to activate it");
+                        btn.set_visible(false);
+                    }
+                    Err(_) => {}
                 }
             }),
         );

@@ -1,5 +1,5 @@
 // GnomeLngSwitcher Extension Helper
-// GitHub: https://github.com/OleksiyM/LinuxLngSwitcher
+// GitHub: https://github.com/OleksiyM/GnomeLngSwitcher
 
 import Gio from 'gi://Gio';
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';

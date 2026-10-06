@@ -83,7 +83,7 @@ fn is_extension_installed() -> bool {
         .join("share")
         .join("gnome-shell")
         .join("extensions")
-        .join("gnome-lng-switcher@github.com");
+        .join("gnome-lng-switcher@oleksiym.github.io");
     ext_dir.join("metadata.json").exists() && ext_dir.join("extension.js").exists()
 }
 
@@ -96,7 +96,7 @@ fn is_extension_enabled() -> bool {
         Err(_) => return false,
     };
     let stdout = String::from_utf8_lossy(&output.stdout);
-    stdout.lines().any(|line| line.trim() == "gnome-lng-switcher@github.com")
+    stdout.lines().any(|line| line.trim() == "gnome-lng-switcher@oleksiym.github.io")
 }
 
 fn install_and_enable_extension() -> Result<(), Box<dyn std::error::Error>> {
@@ -106,7 +106,7 @@ fn install_and_enable_extension() -> Result<(), Box<dyn std::error::Error>> {
         .join("share")
         .join("gnome-shell")
         .join("extensions")
-        .join("gnome-lng-switcher@github.com");
+        .join("gnome-lng-switcher@oleksiym.github.io");
 
     std::fs::create_dir_all(&ext_dir)?;
 
@@ -118,7 +118,7 @@ fn install_and_enable_extension() -> Result<(), Box<dyn std::error::Error>> {
 
     // Try to enable the extension
     let _ = std::process::Command::new("gnome-extensions")
-        .args(&["enable", "gnome-lng-switcher@github.com"])
+        .args(&["enable", "gnome-lng-switcher@oleksiym.github.io"])
         .status();
 
     Ok(())
@@ -209,9 +209,9 @@ pub fn show_about_window(app: Option<&adw::Application>, parent: Option<&Applica
     let links_box = GtkBox::new(Orientation::Horizontal, 6);
     links_box.set_halign(Align::Center);
 
-    let btn_web = LinkButton::with_label("https://oleksiym.github.io/LinuxLngSwitcher/", "Website");
-    let btn_rel = LinkButton::with_label("https://github.com/OleksiyM/LinuxLngSwitcher/releases", "Releases");
-    let btn_gh = LinkButton::with_label("https://github.com/OleksiyM/LinuxLngSwitcher", "GitHub");
+    let btn_web = LinkButton::with_label("https://oleksiym.github.io/GnomeLngSwitcher/", "Website");
+    let btn_rel = LinkButton::with_label("https://github.com/OleksiyM/GnomeLngSwitcher/releases", "Releases");
+    let btn_gh = LinkButton::with_label("https://github.com/OleksiyM/GnomeLngSwitcher", "GitHub");
     let btn_x = LinkButton::with_label("https://x.com/OleksiyML", "X (Twitter)");
 
     links_box.append(&btn_web);

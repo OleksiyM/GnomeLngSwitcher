@@ -2,11 +2,11 @@
 set -e
 
 # GNOME Keyboard Layout Switcher - One-Liner Installer & Updater
-# GitHub: https://github.com/OleksiyM/LinuxLngSwitcher
+# GitHub: https://github.com/OleksiyM/GnomeLngSwitcher
 
-REPO="OleksiyM/LinuxLngSwitcher"
-APP_DIR="${HOME}/Applications/LngSwitcher"
-EXT_DIR="${HOME}/.local/share/gnome-shell/extensions/gnome-lng-switcher@github.com"
+REPO="OleksiyM/GnomeLngSwitcher"
+APP_DIR="${HOME}/Applications/GnomeLngSwitcher"
+EXT_DIR="${HOME}/.local/share/gnome-shell/extensions/gnome-lng-switcher@oleksiym.github.io"
 CONFIG_DIR="${HOME}/.config/gnome-lng-switcher"
 
 echo "========================================================"
@@ -37,6 +37,24 @@ for cmd in curl tar; do
         exit 1
     fi
 done
+
+# 3a. Migrate from legacy names (pre-rename installs)
+LEGACY_EXT_DIR="${HOME}/.local/share/gnome-shell/extensions/gnome-lng-switcher@github.com"
+LEGACY_APP_DIR="${HOME}/Applications/LngSwitcher"
+if [ -d "$LEGACY_EXT_DIR" ]; then
+    echo "🧹 Removing legacy extension: ${LEGACY_EXT_DIR}"
+    gnome-extensions disable gnome-lng-switcher@github.com 2>/dev/null || true
+    rm -rf "$LEGACY_EXT_DIR"
+fi
+if [ -d "$LEGACY_APP_DIR" ]; then
+    echo "🧹 Removing legacy app directory: ${LEGACY_APP_DIR}"
+    rm -rf "$LEGACY_APP_DIR"
+fi
+AUTOSTART_FILE="${HOME}/.config/autostart/GnomeLngSwitcher.desktop"
+if [ -f "$AUTOSTART_FILE" ] && grep -q "Applications/LngSwitcher/" "$AUTOSTART_FILE"; then
+    echo "🔧 Updating autostart entry to the new location"
+    sed -i "s#Applications/LngSwitcher/#Applications/GnomeLngSwitcher/#" "$AUTOSTART_FILE"
+fi
 
 # 3. Create target directories
 mkdir -p "${APP_DIR}"
@@ -89,7 +107,7 @@ curl -fsSL "${RAW_EXT_URL}/metadata.json" -o "${EXT_DIR}/metadata.json"
 curl -fsSL "${RAW_EXT_URL}/extension.js" -o "${EXT_DIR}/extension.js"
 
 if command -v gnome-extensions >/dev/null 2>&1; then
-    gnome-extensions enable gnome-lng-switcher@github.com 2>/dev/null || true
+    gnome-extensions enable gnome-lng-switcher@oleksiym.github.io 2>/dev/null || true
 fi
 echo "✅ GNOME Shell Extension updated at: ${EXT_DIR}"
 

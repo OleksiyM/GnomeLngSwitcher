@@ -12,7 +12,7 @@
     
     <!-- Open Graph / Card Info -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://oleksiym.github.io/LinuxLngSwitcher/">
+    <meta property="og:url" content="https://oleksiym.github.io/GnomeLngSwitcher/">
     <meta property="og:title" content="GNOME Keyboard Layout Switcher">
     <meta property="og:description" content="Switch to default layout with Left Control and cycle layouts with Right Control. Lightweight, native, and built for modern GNOME desktop environments.">
     <meta property="og:image" content="gnome_switcher_mockup.png">
@@ -579,7 +579,7 @@
                 <li><a href="#install">Quick Install</a></li>
                 <li><a href="#setup">Setup Guide</a></li>
             </ul>
-            <a href="https://github.com/OleksiyM/LinuxLngSwitcher" class="btn-github" target="_blank">
+            <a href="https://github.com/OleksiyM/GnomeLngSwitcher" class="btn-github" target="_blank">
                 <svg height="16" viewBox="0 0 16 16" width="16" fill="currentColor">
                     <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
                 </svg>
@@ -599,8 +599,8 @@
                         <a href="#install" class="btn-primary">Quick Install / Update</a>
                     </div>
                     <div class="hero-download-row">
-                        <a id="btn-download-x86" href="https://github.com/OleksiyM/LinuxLngSwitcher/releases/latest/download/gnome-lng-switcher-x86_64.tar.gz" class="btn-secondary">Download x86_64</a>
-                        <a id="btn-download-arm" href="https://github.com/OleksiyM/LinuxLngSwitcher/releases/latest/download/gnome-lng-switcher-aarch64.tar.gz" class="btn-secondary">Download aarch64 (ARM)</a>
+                        <a id="btn-download-x86" href="https://github.com/OleksiyM/GnomeLngSwitcher/releases/latest/download/gnome-lng-switcher-x86_64.tar.gz" class="btn-secondary">Download x86_64</a>
+                        <a id="btn-download-arm" href="https://github.com/OleksiyM/GnomeLngSwitcher/releases/latest/download/gnome-lng-switcher-aarch64.tar.gz" class="btn-secondary">Download aarch64 (ARM)</a>
                     </div>
                 </div>
             </div>
@@ -647,7 +647,7 @@
                     <span>bash</span>
                     <span>Terminal</span>
                 </div>
-                <pre id="terminal-content" style="white-space: pre-wrap; word-break: break-all; color: var(--text-secondary); font-family: monospace; line-height: 1.6; margin: 0; padding: 0;">curl -fsSL https://raw.githubusercontent.com/OleksiyM/LinuxLngSwitcher/main/install.sh | bash</pre>
+                <pre id="terminal-content" style="white-space: pre-wrap; word-break: break-all; color: var(--text-secondary); font-family: monospace; line-height: 1.6; margin: 0; padding: 0;">curl -fsSL https://raw.githubusercontent.com/OleksiyM/GnomeLngSwitcher/main/install.sh | bash</pre>
             </div>
         </div>
     </section>
@@ -712,7 +712,7 @@
             <h3>Automated Installer &amp; Updater</h3>
             <p style="color: var(--text-secondary); margin-bottom: 16px;">The easiest way to install or update GnomeLngSwitcher. It detects your CPU architecture, installs the latest binary and GNOME extension, and restarts the background service:</p>
             <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 18px; margin-bottom: 16px;">
-                <code style="color: var(--accent-blue); font-size: 15px;">curl -fsSL https://raw.githubusercontent.com/OleksiyM/LinuxLngSwitcher/main/install.sh | bash</code>
+                <code style="color: var(--accent-blue); font-size: 15px;">curl -fsSL https://raw.githubusercontent.com/OleksiyM/GnomeLngSwitcher/main/install.sh | bash</code>
             </div>
             <p style="color: var(--text-muted); font-size: 13px;">💡 Note: If you haven't added yourself to the <code>input</code> group yet, run <code>sudo usermod -aG input $USER</code> and log out once.</p>
         </div>
@@ -768,8 +768,8 @@
     <footer>
         <p>GnomeLngSwitcher is open-source software, licensed under MIT. | Built by Alex &amp; Eva.</p>
         <p style="margin-top: 8px;">
-            <a href="https://github.com/OleksiyM/LinuxLngSwitcher">GitHub Repository</a> &bull; 
-            <a href="https://github.com/OleksiyM/LinuxLngSwitcher/releases">Releases</a>
+            <a href="https://github.com/OleksiyM/GnomeLngSwitcher">GitHub Repository</a> &bull; 
+            <a href="https://github.com/OleksiyM/GnomeLngSwitcher/releases">Releases</a>
         </p>
     </footer>
 
@@ -820,11 +820,11 @@
 
         function renderTerminal() {
             if (currentMode === 'oneliner') {
-                document.getElementById('terminal-content').textContent = 'curl -fsSL https://raw.githubusercontent.com/OleksiyM/LinuxLngSwitcher/main/install.sh | bash';
+                document.getElementById('terminal-content').textContent = 'curl -fsSL https://raw.githubusercontent.com/OleksiyM/GnomeLngSwitcher/main/install.sh | bash';
                 return;
             }
             const tagPart = currentTag === 'latest' ? 'latest/download' : `download/${currentTag}`;
-            const commands = `$ wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/${tagPart}/gnome-lng-switcher-${currentArch}.tar.gz
+            const commands = `$ wget https://github.com/OleksiyM/GnomeLngSwitcher/releases/${tagPart}/gnome-lng-switcher-${currentArch}.tar.gz
 $ tar -xzf gnome-lng-switcher-${currentArch}.tar.gz
 $ chmod +x gnome-lng-switcher
 $ sudo usermod -aG input $USER
@@ -835,10 +835,10 @@ $ ./gnome-lng-switcher`;
         function copyTerminalText() {
             let textToCopy = "";
             if (currentMode === 'oneliner') {
-                textToCopy = 'curl -fsSL https://raw.githubusercontent.com/OleksiyM/LinuxLngSwitcher/main/install.sh | bash';
+                textToCopy = 'curl -fsSL https://raw.githubusercontent.com/OleksiyM/GnomeLngSwitcher/main/install.sh | bash';
             } else {
                 const tagPart = currentTag === 'latest' ? 'latest/download' : `download/${currentTag}`;
-                textToCopy = `wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/${tagPart}/gnome-lng-switcher-${currentArch}.tar.gz
+                textToCopy = `wget https://github.com/OleksiyM/GnomeLngSwitcher/releases/${tagPart}/gnome-lng-switcher-${currentArch}.tar.gz
 tar -xzf gnome-lng-switcher-${currentArch}.tar.gz
 chmod +x gnome-lng-switcher
 sudo usermod -aG input $USER
@@ -857,15 +857,15 @@ sudo usermod -aG input $USER
         }
 
         // Fetch the latest release links dynamically from GitHub API
-        fetch('https://api.github.com/repos/OleksiyM/LinuxLngSwitcher/releases/latest')
+        fetch('https://api.github.com/repos/OleksiyM/GnomeLngSwitcher/releases/latest')
             .then(response => response.json())
             .then(data => {
                 const tag = data.tag_name;
                 const x86Asset = data.assets.find(a => a.name.includes('x86_64'));
                 const armAsset = data.assets.find(a => a.name.includes('aarch64'));
                 
-                const x86Url = x86Asset ? x86Asset.browser_download_url : `https://github.com/OleksiyM/LinuxLngSwitcher/releases/download/${tag}/gnome-lng-switcher-x86_64.tar.gz`;
-                const armUrl = armAsset ? armAsset.browser_download_url : `https://github.com/OleksiyM/LinuxLngSwitcher/releases/download/${tag}/gnome-lng-switcher-aarch64.tar.gz`;
+                const x86Url = x86Asset ? x86Asset.browser_download_url : `https://github.com/OleksiyM/GnomeLngSwitcher/releases/download/${tag}/gnome-lng-switcher-x86_64.tar.gz`;
+                const armUrl = armAsset ? armAsset.browser_download_url : `https://github.com/OleksiyM/GnomeLngSwitcher/releases/download/${tag}/gnome-lng-switcher-aarch64.tar.gz`;
                 
                 document.getElementById('btn-download-x86').href = x86Url;
                 document.getElementById('btn-download-arm').href = armUrl;

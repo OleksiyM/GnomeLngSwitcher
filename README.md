@@ -11,12 +11,12 @@ Tapping the **Left Control** key switches the input layout directly to your prim
 To install or update to the latest version automatically in one command:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/OleksiyM/LinuxLngSwitcher/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/OleksiyM/GnomeLngSwitcher/main/install.sh | bash
 ```
 
 > **What this script does:**
 > * Detects CPU architecture (`x86_64` or `aarch64`).
-> * Downloads the latest pre-compiled binary and places it in `~/Applications/LngSwitcher/`.
+> * Downloads the latest pre-compiled binary and places it in `~/Applications/GnomeLngSwitcher/`.
 > * Installs/updates the GNOME Shell extension helper in `~/.local/share/gnome-shell/extensions/`.
 > * Restarts the background daemon automatically.
 
@@ -45,13 +45,13 @@ Since this utility uses a native GTK4/Libadwaita interface, make sure the requir
 1. Download the latest release archive for your architecture:
    * **x86_64 (Intel / AMD):**
      ```bash
-     wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/latest/download/gnome-lng-switcher-x86_64.tar.gz
+     wget https://github.com/OleksiyM/GnomeLngSwitcher/releases/latest/download/gnome-lng-switcher-x86_64.tar.gz
      tar -xzf gnome-lng-switcher-x86_64.tar.gz
      chmod +x gnome-lng-switcher
      ```
    * **aarch64 (ARM):**
      ```bash
-     wget https://github.com/OleksiyM/LinuxLngSwitcher/releases/latest/download/gnome-lng-switcher-aarch64.tar.gz
+     wget https://github.com/OleksiyM/GnomeLngSwitcher/releases/latest/download/gnome-lng-switcher-aarch64.tar.gz
      tar -xzf gnome-lng-switcher-aarch64.tar.gz
      chmod +x gnome-lng-switcher
      ```
@@ -139,5 +139,5 @@ Open your local configuration file at `~/.config/gnome-lng-switcher/config.json`
 
 ## 🌟 Project & Source Code
 
-GitHub Repository: [https://github.com/OleksiyM/LinuxLngSwitcher](https://github.com/OleksiyM/LinuxLngSwitcher)
+GitHub Repository: [https://github.com/OleksiyM/GnomeLngSwitcher](https://github.com/OleksiyM/GnomeLngSwitcher)
 

@@ -1,15 +1,8 @@
 {
   "uuid": "gnome-lng-switcher@oleksiym.github.io",
-  "name": "GnomeLngSwitcher Helper",
-  "description": "Helper for GnomeLngSwitcher to switch keyboard layouts programmatically via D-Bus.",
-  "shell-version": [
-    "45",
-    "46",
-    "47",
-    "48",
-    "49",
-    "50"
-  ],
+  "name": "GnomeLngSwitcher",
+  "description": "Companion extension for the GnomeLngSwitcher app: switches keyboard layouts on demand over D-Bus. Use the Settings button to open the app.",
+  "shell-version": ["45", "46", "47", "48", "49", "50"],
   "url": "https://github.com/OleksiyM/GnomeLngSwitcher",
-  "version": 11
+  "version-name": "0.1.16"
 }

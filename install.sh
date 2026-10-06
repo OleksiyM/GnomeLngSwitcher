@@ -105,6 +105,7 @@ echo "🧩 Updating GNOME Shell Extension files..."
 RAW_EXT_URL="https://raw.githubusercontent.com/${REPO}/main/extension"
 curl -fsSL "${RAW_EXT_URL}/metadata.json" -o "${EXT_DIR}/metadata.json"
 curl -fsSL "${RAW_EXT_URL}/extension.js" -o "${EXT_DIR}/extension.js"
+curl -fsSL "${RAW_EXT_URL}/prefs.js" -o "${EXT_DIR}/prefs.js"
 
 if command -v gnome-extensions >/dev/null 2>&1; then
     gnome-extensions enable gnome-lng-switcher@oleksiym.github.io 2>/dev/null || true

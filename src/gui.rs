@@ -112,9 +112,11 @@ fn install_and_enable_extension() -> Result<(), Box<dyn std::error::Error>> {
 
     let metadata_content = include_str!("../extension/metadata.json");
     let extension_content = include_str!("../extension/extension.js");
+    let prefs_content = include_str!("../extension/prefs.js");
 
     std::fs::write(ext_dir.join("metadata.json"), metadata_content)?;
     std::fs::write(ext_dir.join("extension.js"), extension_content)?;
+    std::fs::write(ext_dir.join("prefs.js"), prefs_content)?;
 
     // Try to enable the extension
     let _ = std::process::Command::new("gnome-extensions")

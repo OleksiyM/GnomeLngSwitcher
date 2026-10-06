@@ -1,6 +1,7 @@
 mod config;
 mod daemon;
 mod gui;
+mod update;
 
 use adw::prelude::*;
 use std::env;

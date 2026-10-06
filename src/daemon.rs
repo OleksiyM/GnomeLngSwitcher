@@ -309,12 +309,14 @@ fn scan_devices(tx: &std::sync::mpsc::Sender<Event>, active_devices: &mut HashSe
     for entry in entries.flatten() {
         let path = entry.path();
         if let Some(filename) = path.file_name().and_then(|f| f.to_str()) {
-            if filename.starts_with("event") && !active_devices.contains(&path)
-                && is_keyboard(&path) {
-                    println!("[Daemon] Starting event reader for keyboard: {:?}", path);
-                    active_devices.insert(path.clone());
-                    start_device_reader(path, tx.clone());
-                }
+            if filename.starts_with("event")
+                && !active_devices.contains(&path)
+                && is_keyboard(&path)
+            {
+                println!("[Daemon] Starting event reader for keyboard: {:?}", path);
+                active_devices.insert(path.clone());
+                start_device_reader(path, tx.clone());
+            }
         }
     }
 }

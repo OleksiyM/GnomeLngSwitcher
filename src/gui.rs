@@ -20,9 +20,9 @@ fn check_input_permission() -> bool {
                         .read(true)
                         .open(entry.path())
                         .is_ok()
-                    {
-                        return true;
-                    }
+                {
+                    return true;
+                }
             }
         }
     }
@@ -152,7 +152,7 @@ pub fn show_about_window(app: Option<&adw::Application>, parent: Option<&Applica
     let window = AdwWindow::builder()
         .title("About")
         .default_width(380)
-        .default_height(340)
+        .default_height(400)
         .resizable(false)
         .modal(true)
         .build();
@@ -200,6 +200,43 @@ pub fn show_about_window(app: Option<&adw::Application>, parent: Option<&Applica
         .css_classes(vec!["dim-label"])
         .build();
     content_box.append(&ver_label);
+
+    // Update status (checked in the background when About opens)
+    let update_label = Label::builder()
+        .label("Checking for updates…")
+        .css_classes(vec!["dim-label"])
+        .build();
+    content_box.append(&update_label);
+    let update_link =
+        LinkButton::with_label(crate::update::RELEASES_URL, "Download the new version");
+    update_link.set_visible(false);
+    content_box.append(&update_link);
+
+    let (tx, rx) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let _ = tx.send(crate::update::check_for_update());
+    });
+    glib::timeout_add_local(
+        std::time::Duration::from_millis(200),
+        clone!(@weak update_label, @weak update_link => @default-return glib::ControlFlow::Break, move || {
+            match rx.try_recv() {
+                Ok(status) => {
+                    match status {
+                        crate::update::UpdateStatus::UpToDate => update_label.set_label("You are up to date"),
+                        crate::update::UpdateStatus::Available(tag) => {
+                            update_label.set_label(&format!("Update available: {}", tag));
+                            update_label.remove_css_class("dim-label");
+                            update_link.set_visible(true);
+                        }
+                        crate::update::UpdateStatus::Unknown => update_label.set_label("Could not check for updates"),
+                    }
+                    glib::ControlFlow::Break
+                }
+                Err(std::sync::mpsc::TryRecvError::Empty) => glib::ControlFlow::Continue,
+                Err(std::sync::mpsc::TryRecvError::Disconnected) => glib::ControlFlow::Break,
+            }
+        }),
+    );
 
     // Description
     let desc = Label::builder()

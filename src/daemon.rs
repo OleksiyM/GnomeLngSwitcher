@@ -41,7 +41,12 @@ impl TapDetector {
         }
     }
 
-    pub fn handle_event(&mut self, key: KeyCode, action: Action, sensitivity_ms: u64) -> Option<KeyCode> {
+    pub fn handle_event(
+        &mut self,
+        key: KeyCode,
+        action: Action,
+        sensitivity_ms: u64,
+    ) -> Option<KeyCode> {
         let now = Instant::now();
         let sensitivity = Duration::from_millis(sensitivity_ms);
 
@@ -125,7 +130,7 @@ pub fn get_sources_tuples() -> Vec<(String, String)> {
 pub fn get_current_layout() -> u32 {
     // 1. Попробуем спросить напрямую у нашего GNOME Shell helper через D-Bus
     if let Ok(output) = std::process::Command::new("gdbus")
-        .args(&[
+        .args([
             "call",
             "--session",
             "--dest",
@@ -139,7 +144,9 @@ pub fn get_current_layout() -> u32 {
     {
         if output.status.success() {
             let stdout = String::from_utf8_lossy(&output.stdout);
-            let s = stdout.trim().trim_matches(|c| c == '(' || c == ')' || c == ',' || c == '\n' || c == ' ');
+            let s = stdout
+                .trim()
+                .trim_matches(|c| c == '(' || c == ')' || c == ',' || c == '\n' || c == ' ');
             let s = s.strip_prefix("uint32").unwrap_or(s).trim();
             if let Ok(idx) = s.parse::<u32>() {
                 return idx;
@@ -177,12 +184,15 @@ pub fn get_current_layout() -> u32 {
 
 pub fn switch_to_layout(layout_index: u32) -> Result<(), Box<dyn std::error::Error>> {
     let output = std::process::Command::new("gdbus")
-        .args(&[
+        .args([
             "call",
             "--session",
-            "--dest", "org.gnome.Shell",
-            "--object-path", "/org/gnome/GnomeLngSwitcher",
-            "--method", "org.gnome.GnomeLngSwitcher.SwitchToLayout",
+            "--dest",
+            "org.gnome.Shell",
+            "--object-path",
+            "/org/gnome/GnomeLngSwitcher",
+            "--method",
+            "org.gnome.GnomeLngSwitcher.SwitchToLayout",
             &layout_index.to_string(),
         ])
         .output()?;
@@ -195,7 +205,6 @@ pub fn switch_to_layout(layout_index: u32) -> Result<(), Box<dyn std::error::Err
     Ok(())
 }
 
-
 fn handle_layout_switch(key: KeyCode, config: &AppConfig) {
     let available = get_available_layouts();
     if available.is_empty() {
@@ -206,7 +215,10 @@ fn handle_layout_switch(key: KeyCode, config: &AppConfig) {
     match key {
         KeyCode::LeftCtrl => {
             let target = config.left_ctrl_layout;
-            println!("[Daemon] Left Ctrl tap: switching to layout index {}", target);
+            println!(
+                "[Daemon] Left Ctrl tap: switching to layout index {}",
+                target
+            );
             if target < available.len() as u32 {
                 if let Err(e) = switch_to_layout(target) {
                     println!("[Daemon] Error switching to layout: {:?}", e);
@@ -214,7 +226,11 @@ fn handle_layout_switch(key: KeyCode, config: &AppConfig) {
                     println!("[Daemon] Successfully switched to layout index {}", target);
                 }
             } else {
-                println!("[Daemon] Target layout index {} is out of bounds (max: {})", target, available.len() - 1);
+                println!(
+                    "[Daemon] Target layout index {} is out of bounds (max: {})",
+                    target,
+                    available.len() - 1
+                );
             }
         }
         KeyCode::RightCtrl => {
@@ -223,22 +239,36 @@ fn handle_layout_switch(key: KeyCode, config: &AppConfig) {
                 return;
             }
             let current = get_current_layout();
-            let next_index = if let Some(pos) = config.right_ctrl_layouts.iter().position(|&idx| idx == current) {
+            let next_index = if let Some(pos) = config
+                .right_ctrl_layouts
+                .iter()
+                .position(|&idx| idx == current)
+            {
                 let next_pos = (pos + 1) % config.right_ctrl_layouts.len();
                 config.right_ctrl_layouts[next_pos]
             } else {
                 config.right_ctrl_layouts[0]
             };
 
-            println!("[Daemon] Right Ctrl tap: cycling from {} to layout index {}", current, next_index);
+            println!(
+                "[Daemon] Right Ctrl tap: cycling from {} to layout index {}",
+                current, next_index
+            );
             if next_index < available.len() as u32 {
                 if let Err(e) = switch_to_layout(next_index) {
                     println!("[Daemon] Error switching to layout: {:?}", e);
                 } else {
-                    println!("[Daemon] Successfully switched to layout index {}", next_index);
+                    println!(
+                        "[Daemon] Successfully switched to layout index {}",
+                        next_index
+                    );
                 }
             } else {
-                println!("[Daemon] Target layout index {} is out of bounds (max: {})", next_index, available.len() - 1);
+                println!(
+                    "[Daemon] Target layout index {} is out of bounds (max: {})",
+                    next_index,
+                    available.len() - 1
+                );
             }
         }
         _ => {}
@@ -253,9 +283,13 @@ fn is_keyboard(path: &Path) -> bool {
     };
     let name = device.name().unwrap_or("Unknown Device");
     if let Some(keys) = device.supported_keys() {
-        let has_ctrls = keys.contains(evdev::Key::KEY_LEFTCTRL) && keys.contains(evdev::Key::KEY_RIGHTCTRL);
+        let has_ctrls =
+            keys.contains(evdev::Key::KEY_LEFTCTRL) && keys.contains(evdev::Key::KEY_RIGHTCTRL);
         if has_ctrls {
-            println!("[Daemon] Device {:?} ({}) matches keyboard criteria (Control keys supported).", path, name);
+            println!(
+                "[Daemon] Device {:?} ({}) matches keyboard criteria (Control keys supported).",
+                path, name
+            );
         }
         has_ctrls
     } else {
@@ -275,13 +309,12 @@ fn scan_devices(tx: &std::sync::mpsc::Sender<Event>, active_devices: &mut HashSe
     for entry in entries.flatten() {
         let path = entry.path();
         if let Some(filename) = path.file_name().and_then(|f| f.to_str()) {
-            if filename.starts_with("event") && !active_devices.contains(&path) {
-                if is_keyboard(&path) {
+            if filename.starts_with("event") && !active_devices.contains(&path)
+                && is_keyboard(&path) {
                     println!("[Daemon] Starting event reader for keyboard: {:?}", path);
                     active_devices.insert(path.clone());
                     start_device_reader(path, tx.clone());
                 }
-            }
         }
     }
 }
@@ -316,14 +349,23 @@ fn start_device_reader(path: PathBuf, tx: std::sync::mpsc::Sender<Event>) {
                                 2 => Action::Repeat,
                                 _ => continue,
                             };
-                            if tx.send(Event { key: key_code, action }).is_err() {
+                            if tx
+                                .send(Event {
+                                    key: key_code,
+                                    action,
+                                })
+                                .is_err()
+                            {
                                 return;
                             }
                         }
                     }
                 }
                 Err(e) => {
-                    println!("[Daemon] Error reading events from {:?}: {}. Stopping reader.", path, e);
+                    println!(
+                        "[Daemon] Error reading events from {:?}: {}. Stopping reader.",
+                        path, e
+                    );
                     return;
                 }
             }
@@ -331,7 +373,10 @@ fn start_device_reader(path: PathBuf, tx: std::sync::mpsc::Sender<Event>) {
     });
 }
 
-fn reload_config_if_changed(config: &mut AppConfig, last_modified: &mut Option<std::time::SystemTime>) {
+fn reload_config_if_changed(
+    config: &mut AppConfig,
+    last_modified: &mut Option<std::time::SystemTime>,
+) {
     let path = crate::config::get_config_path();
     if let Ok(metadata) = std::fs::metadata(&path) {
         if let Ok(modified) = metadata.modified() {
@@ -415,7 +460,10 @@ impl ksni::Tray for SwitcherTray {
                 activate: Box::new(|_this: &mut SwitcherTray| {
                     log_msg("[Tray Menu] About clicked");
                     if let Ok(exe_path) = std::env::current_exe() {
-                        log_msg(&format!("[Tray Menu] Spawning About dialog from {:?}", exe_path));
+                        log_msg(&format!(
+                            "[Tray Menu] Spawning About dialog from {:?}",
+                            exe_path
+                        ));
                         let _ = std::process::Command::new(exe_path).arg("--about").spawn();
                     }
                 }),
@@ -463,7 +511,10 @@ pub fn run_daemon() -> Result<(), Box<dyn std::error::Error>> {
                     }
                 }
                 Err(e) => {
-                    log_msg(&format!("[Daemon] Failed to spawn tray icon: {:?}. Retrying in 5 seconds...", e));
+                    log_msg(&format!(
+                        "[Daemon] Failed to spawn tray icon: {:?}. Retrying in 5 seconds...",
+                        e
+                    ));
                     std::thread::sleep(std::time::Duration::from_secs(5));
                 }
             }
@@ -493,7 +544,9 @@ pub fn run_daemon() -> Result<(), Box<dyn std::error::Error>> {
         match rx.recv_timeout(Duration::from_millis(1000)) {
             Ok(event) => {
                 reload_config_if_changed(&mut config, &mut last_config_modified);
-                if let Some(triggered_key) = detector.handle_event(event.key, event.action, config.sensitivity_ms) {
+                if let Some(triggered_key) =
+                    detector.handle_event(event.key, event.action, config.sensitivity_ms)
+                {
                     println!("[Daemon] Tap detected for {:?}", triggered_key);
                     handle_layout_switch(triggered_key, &config);
                 }
@@ -530,7 +583,7 @@ mod tests {
     #[test]
     fn test_tap_detector_successful_left_tap() {
         let mut detector = TapDetector::new();
-        
+
         let r1 = detector.handle_event(KeyCode::LeftCtrl, Action::Press, 300);
         assert_eq!(r1, None);
 
@@ -541,7 +594,7 @@ mod tests {
     #[test]
     fn test_tap_detector_interrupted_tap() {
         let mut detector = TapDetector::new();
-        
+
         detector.handle_event(KeyCode::LeftCtrl, Action::Press, 300);
         detector.handle_event(KeyCode::Other, Action::Press, 300);
         let r = detector.handle_event(KeyCode::LeftCtrl, Action::Release, 300);
@@ -551,7 +604,7 @@ mod tests {
     #[test]
     fn test_tap_detector_timeout_tap() {
         let mut detector = TapDetector::new();
-        
+
         detector.handle_event(KeyCode::LeftCtrl, Action::Press, 0);
         let r = detector.handle_event(KeyCode::LeftCtrl, Action::Release, 0);
         assert_eq!(r, None);

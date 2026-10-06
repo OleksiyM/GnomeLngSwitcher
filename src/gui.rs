@@ -15,11 +15,14 @@ fn check_input_permission() -> bool {
     if let Ok(entries) = std::fs::read_dir("/dev/input") {
         for entry in entries.flatten() {
             if let Some(name) = entry.file_name().to_str() {
-                if name.starts_with("event") {
-                    if std::fs::OpenOptions::new().read(true).open(entry.path()).is_ok() {
+                if name.starts_with("event")
+                    && std::fs::OpenOptions::new()
+                        .read(true)
+                        .open(entry.path())
+                        .is_ok()
+                    {
                         return true;
                     }
-                }
             }
         }
     }
@@ -41,7 +44,9 @@ fn is_daemon_running() -> bool {
 
 fn set_autostart(enabled: bool) -> Result<(), std::io::Error> {
     let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
-    let autostart_dir = std::path::PathBuf::from(home).join(".config").join("autostart");
+    let autostart_dir = std::path::PathBuf::from(home)
+        .join(".config")
+        .join("autostart");
     let desktop_path = autostart_dir.join("GnomeLngSwitcher.desktop");
 
     if enabled {
@@ -89,14 +94,16 @@ fn is_extension_installed() -> bool {
 
 fn is_extension_enabled() -> bool {
     let output = match std::process::Command::new("gnome-extensions")
-        .args(&["list", "--enabled"])
+        .args(["list", "--enabled"])
         .output()
     {
         Ok(out) => out,
         Err(_) => return false,
     };
     let stdout = String::from_utf8_lossy(&output.stdout);
-    stdout.lines().any(|line| line.trim() == "gnome-lng-switcher@oleksiym.github.io")
+    stdout
+        .lines()
+        .any(|line| line.trim() == "gnome-lng-switcher@oleksiym.github.io")
 }
 
 fn install_and_enable_extension() -> Result<(), Box<dyn std::error::Error>> {
@@ -120,7 +127,7 @@ fn install_and_enable_extension() -> Result<(), Box<dyn std::error::Error>> {
 
     // Try to enable the extension
     let _ = std::process::Command::new("gnome-extensions")
-        .args(&["enable", "gnome-lng-switcher@oleksiym.github.io"])
+        .args(["enable", "gnome-lng-switcher@oleksiym.github.io"])
         .status();
 
     Ok(())
@@ -189,7 +196,7 @@ pub fn show_about_window(app: Option<&adw::Application>, parent: Option<&Applica
 
     // Version Badge
     let ver_label = Label::builder()
-        .label(&format!("v{}", env!("CARGO_PKG_VERSION")))
+        .label(format!("v{}", env!("CARGO_PKG_VERSION")))
         .css_classes(vec!["dim-label"])
         .build();
     content_box.append(&ver_label);
@@ -212,16 +219,34 @@ pub fn show_about_window(app: Option<&adw::Application>, parent: Option<&Applica
     links_box.set_halign(Align::Center);
 
     let btn_web = LinkButton::with_label("https://oleksiym.github.io/GnomeLngSwitcher/", "Website");
-    let btn_rel = LinkButton::with_label("https://github.com/OleksiyM/GnomeLngSwitcher/releases", "Releases");
+    let btn_rel = LinkButton::with_label(
+        "https://github.com/OleksiyM/GnomeLngSwitcher/releases",
+        "Releases",
+    );
     let btn_gh = LinkButton::with_label("https://github.com/OleksiyM/GnomeLngSwitcher", "GitHub");
     let btn_x = LinkButton::with_label("https://x.com/OleksiyML", "X (Twitter)");
 
     links_box.append(&btn_web);
-    links_box.append(&Label::builder().label("|").css_classes(vec!["dim-label"]).build());
+    links_box.append(
+        &Label::builder()
+            .label("|")
+            .css_classes(vec!["dim-label"])
+            .build(),
+    );
     links_box.append(&btn_rel);
-    links_box.append(&Label::builder().label("|").css_classes(vec!["dim-label"]).build());
+    links_box.append(
+        &Label::builder()
+            .label("|")
+            .css_classes(vec!["dim-label"])
+            .build(),
+    );
     links_box.append(&btn_gh);
-    links_box.append(&Label::builder().label("|").css_classes(vec!["dim-label"]).build());
+    links_box.append(
+        &Label::builder()
+            .label("|")
+            .css_classes(vec!["dim-label"])
+            .build(),
+    );
     links_box.append(&btn_x);
 
     content_box.append(&links_box);
@@ -243,12 +268,14 @@ pub fn build_ui(app: &adw::Application) {
 
     // Setup CSS styles
     let provider = gtk::CssProvider::new();
-    provider.load_from_data("
+    provider.load_from_data(
+        "
         label.success { color: #2ec27e; font-weight: bold; }
         label.error { color: #e01b24; font-weight: bold; }
         label.status-running { color: #3584e4; font-weight: bold; }
         label.sens-value { color: #3584e4; font-weight: bold; }
-    ");
+    ",
+    );
     gtk::style_context_add_provider_for_display(
         &gdk::Display::default().expect("Could not get default display"),
         &provider,
@@ -288,9 +315,7 @@ pub fn build_ui(app: &adw::Application) {
     main_box.append(&page);
 
     // 1. Group: Access & Daemon Status
-    let access_group = PreferencesGroup::builder()
-        .title("System Status")
-        .build();
+    let access_group = PreferencesGroup::builder().title("System Status").build();
     page.add(&access_group);
 
     // Row: Accessibility Access
@@ -302,7 +327,11 @@ pub fn build_ui(app: &adw::Application) {
 
     let has_access = check_input_permission();
     let status_label = Label::builder()
-        .label(if has_access { "● Active" } else { "● Inactive" })
+        .label(if has_access {
+            "● Active"
+        } else {
+            "● Inactive"
+        })
         .css_classes(vec![if has_access { "success" } else { "error" }])
         .valign(Align::Center)
         .build();
@@ -313,7 +342,7 @@ pub fn build_ui(app: &adw::Application) {
             .title("Grant Permission")
             .subtitle("Run in terminal: sudo usermod -aG input $USER")
             .build();
-        
+
         let copy_btn = Button::with_label("Copy Command");
         copy_btn.connect_clicked(|_| {
             let clipboard = gdk::Display::default()
@@ -334,13 +363,25 @@ pub fn build_ui(app: &adw::Application) {
 
     let daemon_active = is_daemon_running();
     let daemon_status_label = Label::builder()
-        .label(if daemon_active { "● Running" } else { "● Stopped" })
-        .css_classes(vec![if daemon_active { "status-running" } else { "error" }])
+        .label(if daemon_active {
+            "● Running"
+        } else {
+            "● Stopped"
+        })
+        .css_classes(vec![if daemon_active {
+            "status-running"
+        } else {
+            "error"
+        }])
         .valign(Align::Center)
         .build();
     daemon_row.add_suffix(&daemon_status_label);
 
-    let daemon_btn = Button::with_label(if daemon_active { "Stop Daemon" } else { "Start Daemon" });
+    let daemon_btn = Button::with_label(if daemon_active {
+        "Stop Daemon"
+    } else {
+        "Start Daemon"
+    });
     daemon_btn.connect_clicked(clone!(@weak daemon_status_label => move |btn| {
         if is_daemon_running() {
             // Stop daemon by removing PID file
@@ -364,7 +405,7 @@ pub fn build_ui(app: &adw::Application) {
                     .stderr(std::process::Stdio::null())
                     .stdin(std::process::Stdio::null())
                     .spawn();
-                
+
                 std::thread::sleep(std::time::Duration::from_millis(300));
                 if is_daemon_running() {
                     daemon_status_label.set_label("● Running");
@@ -385,8 +426,16 @@ pub fn build_ui(app: &adw::Application) {
 
     let ext_active = is_extension_installed() && is_extension_enabled();
     let extension_status_label = Label::builder()
-        .label(if ext_active { "● Active" } else { "● Inactive" })
-        .css_classes(vec![if ext_active { "status-running" } else { "error" }])
+        .label(if ext_active {
+            "● Active"
+        } else {
+            "● Inactive"
+        })
+        .css_classes(vec![if ext_active {
+            "status-running"
+        } else {
+            "error"
+        }])
         .valign(Align::Center)
         .build();
     extension_row.add_suffix(&extension_status_label);
@@ -420,9 +469,7 @@ pub fn build_ui(app: &adw::Application) {
     left_col.set_hexpand(true);
     left_col.set_halign(Align::Fill);
 
-    let left_title = Label::builder()
-        .halign(Align::Start)
-        .build();
+    let left_title = Label::builder().halign(Align::Start).build();
     left_title.set_markup("<b>Left Control</b>");
 
     let left_subtitle = Label::builder()
@@ -430,9 +477,12 @@ pub fn build_ui(app: &adw::Application) {
         .halign(Align::Start)
         .css_classes(vec!["dim-label"])
         .build();
-    
+
     let left_dropdown = DropDown::from_strings(
-        &layouts_formatted.iter().map(|s| s.as_str()).collect::<Vec<&str>>(),
+        &layouts_formatted
+            .iter()
+            .map(|s| s.as_str())
+            .collect::<Vec<&str>>(),
     );
     let current_left = config.borrow().left_ctrl_layout;
     if current_left < layouts.len() as u32 {
@@ -457,9 +507,7 @@ pub fn build_ui(app: &adw::Application) {
     right_col.set_hexpand(true);
     right_col.set_halign(Align::Fill);
 
-    let right_title = Label::builder()
-        .halign(Align::Start)
-        .build();
+    let right_title = Label::builder().halign(Align::Start).build();
     right_title.set_markup("<b>Right Control</b>");
 
     let right_subtitle = Label::builder()
@@ -469,7 +517,7 @@ pub fn build_ui(app: &adw::Application) {
         .build();
 
     let right_checkboxes_box = GtkBox::new(Orientation::Vertical, 6);
-    
+
     for (idx, layout_name) in layouts_formatted.iter().enumerate() {
         let check_row = GtkBox::new(Orientation::Horizontal, 8);
         check_row.set_valign(Align::Center);
@@ -479,7 +527,7 @@ pub fn build_ui(app: &adw::Application) {
             .label(layout_name.as_str())
             .valign(Align::Center)
             .build();
-        
+
         check.connect_toggled(clone!(@strong config, @strong layouts => move |cb| {
             let mut cfg = config.borrow_mut();
             if cb.is_active() {
@@ -511,9 +559,7 @@ pub fn build_ui(app: &adw::Application) {
     controls_group.add(&controls_row);
 
     // 3. Group: Settings (Sensitivity & Launch at Login inside boxed list)
-    let settings_group = PreferencesGroup::builder()
-        .title("Settings")
-        .build();
+    let settings_group = PreferencesGroup::builder().title("Settings").build();
     page.add(&settings_group);
 
     let settings_box = GtkBox::new(Orientation::Vertical, 12);
@@ -524,19 +570,16 @@ pub fn build_ui(app: &adw::Application) {
 
     // Keypress Sensitivity Header
     let sens_header = GtkBox::new(Orientation::Horizontal, 8);
-    let sens_title = Label::builder()
-        .halign(Align::Start)
-        .hexpand(true)
-        .build();
+    let sens_title = Label::builder().halign(Align::Start).hexpand(true).build();
     sens_title.set_markup("<b>Keypress Sensitivity</b>");
 
     let current_sens = config.borrow().sensitivity_ms as f64;
     let sens_label = Label::builder()
-        .label(&format!("{:.2} s", current_sens / 1000.0))
+        .label(format!("{:.2} s", current_sens / 1000.0))
         .halign(Align::End)
         .css_classes(vec!["sens-value"])
         .build();
-    
+
     sens_header.append(&sens_title);
     sens_header.append(&sens_label);
     settings_box.append(&sens_header);
@@ -565,9 +608,7 @@ pub fn build_ui(app: &adw::Application) {
     let login_text_box = GtkBox::new(Orientation::Vertical, 2);
     login_text_box.set_hexpand(true);
 
-    let login_title = Label::builder()
-        .halign(Align::Start)
-        .build();
+    let login_title = Label::builder().halign(Align::Start).build();
     login_title.set_markup("<b>Launch at Login</b>");
 
     let login_subtitle = Label::builder()

@@ -28,7 +28,9 @@ impl Default for AppConfig {
 
 pub fn get_config_dir() -> PathBuf {
     let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
-    PathBuf::from(home).join(".config").join("gnome-lng-switcher")
+    PathBuf::from(home)
+        .join(".config")
+        .join("gnome-lng-switcher")
 }
 
 pub fn get_config_path() -> PathBuf {

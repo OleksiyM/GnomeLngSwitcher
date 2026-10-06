@@ -38,6 +38,7 @@ gls_install() (
     for directory in "$app_dir" "$data_dir" "$config_dir"; do
         [[ $directory == /* && $directory != / ]] || fail 'Installation and XDG paths must be absolute, non-root paths.'
     done
+    # shellcheck disable=SC1003  # the backslash and quotes are literal characters in the pattern
     case "$app_dir" in
         *['"$`%\']*|*'|'*|*'&'*|*$'\n'*|*$'\r'*) fail 'Installation path contains characters unsupported in desktop launchers.' ;;
     esac
@@ -144,6 +145,7 @@ gls_install() (
     if command -v update-desktop-database >/dev/null; then update-desktop-database "$data_dir/applications" 2>/dev/null || true; fi
     printf '✅ Installed %s.\n' "$tag"
 
+    # shellcheck disable=SC2016  # $USER is intentionally printed literally as a hint
     if ! id -nG | tr ' ' '\n' | grep -qx input; then
         printf '%s\n' '' "⚠️  User '$USER' is not in the 'input' group." \
             '    To intercept Control keys without root, run:' \

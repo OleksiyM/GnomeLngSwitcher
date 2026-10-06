@@ -140,7 +140,7 @@ fn status_icon() -> Image {
 /// Shows state as an icon (green check / red warning) plus a text in the row subtitle.
 fn apply_status(row: &ActionRow, icon: &Image, ok: bool, text: &str) {
     icon.set_icon_name(Some(if ok {
-        "emblem-ok-symbolic"
+        "object-select-symbolic"
     } else {
         "dialog-warning-symbolic"
     }));

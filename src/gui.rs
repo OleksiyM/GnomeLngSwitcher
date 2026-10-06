@@ -133,18 +133,80 @@ fn install_and_enable_extension() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn format_layout_name(code: &str) -> String {
-    match code {
-        "us" => "English (U.S.)".to_string(),
-        "ru" => "Russian".to_string(),
-        "ua" => "Ukrainian".to_string(),
-        other => {
-            let mut chars = other.chars();
-            match chars.next() {
-                None => String::new(),
-                Some(f) => f.to_uppercase().collect::<String>() + chars.as_str(),
+fn status_icon() -> Image {
+    Image::builder().valign(Align::Center).build()
+}
+
+/// Shows state as an icon (green check / red warning) plus a text in the row subtitle.
+fn apply_status(row: &ActionRow, icon: &Image, ok: bool, text: &str) {
+    icon.set_icon_name(Some(if ok {
+        "emblem-ok-symbolic"
+    } else {
+        "dialog-warning-symbolic"
+    }));
+    icon.set_css_classes(&[if ok { "status-ok" } else { "status-bad" }]);
+    row.set_subtitle(text);
+}
+
+fn refresh_daemon_row(row: &ActionRow, icon: &Image, btn: &Button) {
+    let running = is_daemon_running();
+    apply_status(
+        row,
+        icon,
+        running,
+        if running { "Running" } else { "Stopped" },
+    );
+    btn.set_label(if running {
+        "Stop Daemon"
+    } else {
+        "Start Daemon"
+    });
+}
+
+/// Layout code -> human-readable name, read once from the system XKB rules (evdev.xml).
+fn xkb_layout_names() -> &'static std::collections::HashMap<String, String> {
+    static NAMES: once_cell::sync::Lazy<std::collections::HashMap<String, String>> =
+        once_cell::sync::Lazy::new(|| {
+            let mut map = std::collections::HashMap::new();
+            let xml =
+                std::fs::read_to_string("/usr/share/X11/xkb/rules/evdev.xml").unwrap_or_default();
+            let section = match (xml.find("<layoutList>"), xml.find("</layoutList>")) {
+                (Some(start), Some(end)) if start < end => &xml[start..end],
+                _ => return map,
+            };
+            for block in section.split("<layout>").skip(1) {
+                // The first <name>/<description> of a block belong to the layout itself.
+                let tag = |name: &str| -> Option<String> {
+                    let open = format!("<{}>", name);
+                    let close = format!("</{}>", name);
+                    let from = block.find(&open)? + open.len();
+                    let to = block[from..].find(&close)? + from;
+                    Some(block[from..to].trim().to_string())
+                };
+                if let (Some(code), Some(description)) = (tag("name"), tag("description")) {
+                    map.insert(code, description);
+                }
             }
-        }
+            map
+        });
+    &NAMES
+}
+
+fn format_layout_name(code: &str) -> String {
+    // GNOME sources with a variant look like "us+dvorak".
+    if let Some((base, variant)) = code.split_once('+') {
+        return format!("{} ({})", format_layout_name(base), variant);
+    }
+    if code == "us" {
+        return "English (U.S.)".to_string();
+    }
+    if let Some(name) = xkb_layout_names().get(code) {
+        return name.clone();
+    }
+    let mut chars = code.chars();
+    match chars.next() {
+        None => String::new(),
+        Some(f) => f.to_uppercase().collect::<String>() + chars.as_str(),
     }
 }
 
@@ -306,9 +368,8 @@ pub fn build_ui(app: &adw::Application) {
     let provider = gtk::CssProvider::new();
     provider.load_from_data(
         "
-        label.success { color: #2ec27e; font-weight: bold; }
-        label.error { color: #e01b24; font-weight: bold; }
-        label.status-running { color: #3584e4; font-weight: bold; }
+        image.status-ok { color: #2ec27e; }
+        image.status-bad { color: #e5a50a; }
         label.sens-value { color: #3584e4; font-weight: bold; }
     ",
     );
@@ -319,7 +380,7 @@ pub fn build_ui(app: &adw::Application) {
     );
 
     let initial_width = config.borrow().window_width.unwrap_or(540);
-    let initial_height = config.borrow().window_height.unwrap_or(660);
+    let initial_height = config.borrow().window_height.unwrap_or(780);
 
     let window = ApplicationWindow::builder()
         .application(app)
@@ -350,28 +411,27 @@ pub fn build_ui(app: &adw::Application) {
     page.set_vexpand(true);
     main_box.append(&page);
 
-    // 1. Group: Access & Daemon Status
+    // 1. Group: System status (state icon on the left, text in subtitle, action button on the right)
     let access_group = PreferencesGroup::builder().title("System Status").build();
     page.add(&access_group);
 
-    // Row: Accessibility Access
-    let access_row = ActionRow::builder()
-        .title("Accessibility Access")
-        .subtitle("Required to intercept modifier keys from /dev/input")
-        .build();
+    // Row: Input device access
+    let access_row = ActionRow::builder().title("Input Device Access").build();
+    let access_icon = status_icon();
+    access_row.add_prefix(&access_icon);
     access_group.add(&access_row);
 
     let has_access = check_input_permission();
-    let status_label = Label::builder()
-        .label(if has_access {
-            "● Active"
+    apply_status(
+        &access_row,
+        &access_icon,
+        has_access,
+        if has_access {
+            "Granted: can read Control keys from /dev/input"
         } else {
-            "● Inactive"
-        })
-        .css_classes(vec![if has_access { "success" } else { "error" }])
-        .valign(Align::Center)
-        .build();
-    access_row.add_suffix(&status_label);
+            "Not in the 'input' group: cannot read /dev/input"
+        },
+    );
 
     if !has_access {
         let help_row = ActionRow::builder()
@@ -379,7 +439,10 @@ pub fn build_ui(app: &adw::Application) {
             .subtitle("Run in terminal: sudo usermod -aG input $USER")
             .build();
 
-        let copy_btn = Button::with_label("Copy Command");
+        let copy_btn = Button::builder()
+            .label("Copy Command")
+            .valign(Align::Center)
+            .build();
         copy_btn.connect_clicked(|_| {
             let clipboard = gdk::Display::default()
                 .expect("Could not get default display")
@@ -390,101 +453,76 @@ pub fn build_ui(app: &adw::Application) {
         access_group.add(&help_row);
     }
 
-    // Row: Daemon Status
-    let daemon_row = ActionRow::builder()
-        .title("Daemon Status")
-        .subtitle("Keyboard interceptor background service")
-        .build();
+    // Row: Background service (daemon)
+    let daemon_row = ActionRow::builder().title("Background Service").build();
+    let daemon_icon = status_icon();
+    daemon_row.add_prefix(&daemon_icon);
     access_group.add(&daemon_row);
 
-    let daemon_active = is_daemon_running();
-    let daemon_status_label = Label::builder()
-        .label(if daemon_active {
-            "● Running"
-        } else {
-            "● Stopped"
-        })
-        .css_classes(vec![if daemon_active {
-            "status-running"
-        } else {
-            "error"
-        }])
-        .valign(Align::Center)
-        .build();
-    daemon_row.add_suffix(&daemon_status_label);
-
-    let daemon_btn = Button::with_label(if daemon_active {
-        "Stop Daemon"
-    } else {
-        "Start Daemon"
-    });
-    daemon_btn.connect_clicked(clone!(@weak daemon_status_label => move |btn| {
+    let daemon_btn = Button::builder().valign(Align::Center).build();
+    refresh_daemon_row(&daemon_row, &daemon_icon, &daemon_btn);
+    daemon_btn.connect_clicked(clone!(@weak daemon_row, @weak daemon_icon => move |btn| {
         if is_daemon_running() {
             // Stop daemon by removing PID file
             let pid_path = crate::config::get_pid_path();
             if pid_path.exists() {
                 let _ = std::fs::remove_file(&pid_path);
             }
-            std::thread::sleep(std::time::Duration::from_millis(300));
-            if !is_daemon_running() {
-                daemon_status_label.set_label("● Stopped");
-                daemon_status_label.set_css_classes(&["error"]);
-                btn.set_label("Start Daemon");
-            }
-        } else {
-            // Start daemon
-            if let Ok(exe_path) = std::env::current_exe() {
-                // Decouple spawned daemon from terminal stdio to prevent SIGHUP on close
-                let _ = std::process::Command::new(exe_path)
-                    .arg("--daemon")
-                    .stdout(std::process::Stdio::null())
-                    .stderr(std::process::Stdio::null())
-                    .stdin(std::process::Stdio::null())
-                    .spawn();
-
-                std::thread::sleep(std::time::Duration::from_millis(300));
-                if is_daemon_running() {
-                    daemon_status_label.set_label("● Running");
-                    daemon_status_label.set_css_classes(&["status-running"]);
-                    btn.set_label("Stop Daemon");
-                }
-            }
+        } else if let Ok(exe_path) = std::env::current_exe() {
+            // Decouple spawned daemon from terminal stdio to prevent SIGHUP on close
+            let _ = std::process::Command::new(exe_path)
+                .arg("--daemon")
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::null())
+                .stdin(std::process::Stdio::null())
+                .spawn();
         }
+        std::thread::sleep(std::time::Duration::from_millis(300));
+        refresh_daemon_row(&daemon_row, &daemon_icon, btn);
     }));
     daemon_row.add_suffix(&daemon_btn);
 
-    // Row: GNOME Extension Helper
-    let extension_row = ActionRow::builder()
-        .title("GNOME Extension Helper")
-        .subtitle("Required to change layouts programmatically")
-        .build();
+    // Keep the daemon state fresh while this window is open. The timer stops by itself
+    // as soon as the widgets are gone (window closed).
+    glib::timeout_add_seconds_local(
+        2,
+        clone!(@weak daemon_row, @weak daemon_icon, @weak daemon_btn => @default-return glib::ControlFlow::Break, move || {
+            refresh_daemon_row(&daemon_row, &daemon_icon, &daemon_btn);
+            glib::ControlFlow::Continue
+        }),
+    );
+
+    // Row: GNOME Shell extension
+    let extension_row = ActionRow::builder().title("GNOME Shell Extension").build();
+    let extension_icon = status_icon();
+    extension_row.add_prefix(&extension_icon);
     access_group.add(&extension_row);
 
     let ext_active = is_extension_installed() && is_extension_enabled();
-    let extension_status_label = Label::builder()
-        .label(if ext_active {
-            "● Active"
+    apply_status(
+        &extension_row,
+        &extension_icon,
+        ext_active,
+        if ext_active {
+            "Enabled: lets the switcher change layouts"
         } else {
-            "● Inactive"
-        })
-        .css_classes(vec![if ext_active {
-            "status-running"
-        } else {
-            "error"
-        }])
-        .valign(Align::Center)
-        .build();
-    extension_row.add_suffix(&extension_status_label);
+            "Not enabled: required to change layouts"
+        },
+    );
 
     if !ext_active {
-        let enable_ext_btn = Button::with_label("Enable Helper");
-        enable_ext_btn.connect_clicked(clone!(@weak extension_status_label => move |btn| {
-            if install_and_enable_extension().is_ok() {
-                extension_status_label.set_label("● Active");
-                extension_status_label.set_css_classes(&["status-running"]);
-                btn.set_sensitive(false);
-            }
-        }));
+        let enable_ext_btn = Button::builder()
+            .label("Enable")
+            .valign(Align::Center)
+            .build();
+        enable_ext_btn.connect_clicked(
+            clone!(@weak extension_row, @weak extension_icon => move |btn| {
+                if install_and_enable_extension().is_ok() {
+                    apply_status(&extension_row, &extension_icon, true, "Enabled: lets the switcher change layouts");
+                    btn.set_sensitive(false);
+                }
+            }),
+        );
         extension_row.add_suffix(&enable_ext_btn);
     }
 
@@ -509,7 +547,7 @@ pub fn build_ui(app: &adw::Application) {
     left_title.set_markup("<b>Left Control</b>");
 
     let left_subtitle = Label::builder()
-        .label("Switch to layout:")
+        .label("Always switch to:")
         .halign(Align::Start)
         .css_classes(vec!["dim-label"])
         .build();
@@ -547,7 +585,7 @@ pub fn build_ui(app: &adw::Application) {
     right_title.set_markup("<b>Right Control</b>");
 
     let right_subtitle = Label::builder()
-        .label("Cycle layout list:")
+        .label("Cycle through:")
         .halign(Align::Start)
         .css_classes(vec!["dim-label"])
         .build();
@@ -595,7 +633,7 @@ pub fn build_ui(app: &adw::Application) {
     controls_group.add(&controls_row);
 
     // 3. Group: Settings (Sensitivity & Launch at Login inside boxed list)
-    let settings_group = PreferencesGroup::builder().title("Settings").build();
+    let settings_group = PreferencesGroup::builder().title("Preferences").build();
     page.add(&settings_group);
 
     let settings_box = GtkBox::new(Orientation::Vertical, 12);
@@ -607,7 +645,7 @@ pub fn build_ui(app: &adw::Application) {
     // Keypress Sensitivity Header
     let sens_header = GtkBox::new(Orientation::Horizontal, 8);
     let sens_title = Label::builder().halign(Align::Start).hexpand(true).build();
-    sens_title.set_markup("<b>Keypress Sensitivity</b>");
+    sens_title.set_markup("<b>Tap Duration</b>");
 
     let current_sens = config.borrow().sensitivity_ms as f64;
     let sens_label = Label::builder()
@@ -619,6 +657,13 @@ pub fn build_ui(app: &adw::Application) {
     sens_header.append(&sens_title);
     sens_header.append(&sens_label);
     settings_box.append(&sens_header);
+
+    let sens_hint = Label::builder()
+        .label("Longest Control press that still counts as a tap")
+        .halign(Align::Start)
+        .css_classes(vec!["dim-label"])
+        .build();
+    settings_box.append(&sens_hint);
 
     // Slider
     let scale = Scale::with_range(Orientation::Horizontal, 150.0, 600.0, 10.0);
@@ -648,7 +693,7 @@ pub fn build_ui(app: &adw::Application) {
     login_title.set_markup("<b>Launch at Login</b>");
 
     let login_subtitle = Label::builder()
-        .label("Start utility automatically at GNOME desktop login")
+        .label("Start the switcher when you log in")
         .halign(Align::Start)
         .css_classes(vec!["dim-label"])
         .build();

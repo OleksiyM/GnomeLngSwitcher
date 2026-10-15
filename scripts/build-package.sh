@@ -25,7 +25,7 @@ install -m 0755 target/release/gnome-lng-switcher "$stage/gnome-lng-switcher"
 install -m 0755 uninstall.sh "$stage/uninstall.sh"
 install -m 0644 extension/metadata.json extension/extension.js extension/prefs.js "$stage/extension/"
 install -m 0644 data/*.desktop.in "$stage/data/"
-for doc in README.md LICENSE; do
+for doc in README.md LICENSE CHANGELOG.md; do
     [[ -f "$doc" ]] && install -m 0644 "$doc" "$stage/$doc"
 done
 

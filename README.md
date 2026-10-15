@@ -16,12 +16,12 @@ Website: <https://oleksiym.github.io/GnomeLngSwitcher/>
 
 ## Requirements
 
-* GNOME Shell 45 – 50 (the extension is declared for these versions)
+* GNOME Shell 45 – 51 (the extension is declared for these versions, including GNOME 5.1 in Ubuntu 26.10)
 * `x86_64` or `aarch64` Linux, with GTK 4 and libadwaita runtime libraries (present on any current GNOME desktop)
 * `curl`, `tar`, `sha256sum` for the installer (present on virtually every system)
 * Your user must be in the `input` group (see [First run](#first-run))
 
-Built and tested on **Fedora 44**.
+Built and tested on **Fedora 44** and **Ubuntu 26.10**.
 
 ## Install / update
 
